@@ -300,9 +300,10 @@ function App() {
           style={{
             display: "flex",
             justifyContent: "center",
-            gap: "20px",
-            flexWrap: "wrap",
-            marginBottom: "40px",
+            gap: window.innerWidth < 768 ? "8px" : "20px",
+            flexWrap: "nowrap",
+            overflowX: "auto",
+            paddingBottom: "10px",
           }}
         >
           {topPlayers.map((player, index) => {
@@ -318,7 +319,8 @@ function App() {
                   border: `2px solid ${colors[index]}`,
                   borderRadius: "20px",
                   padding: window.innerWidth < 768 ? "12px" : "20px",
-                  width: window.innerWidth < 768 ? "150px" : "220px",
+                  width: window.innerWidth < 768 ? "110px" : "220px",
+                  minWidth: window.innerWidth < 768 ? "110px" : "220px",
                   textAlign: "center",
                   boxShadow: `0 0 25px ${colors[index]}`,
                 }}
