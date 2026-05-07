@@ -300,7 +300,10 @@ function App() {
           style={{
             display: "flex",
             justifyContent: "center",
-            gap: window.innerWidth < 768 ? "8px" : "20px",
+            gap: window.innerWidth < 768 ? "6px" : "20px",
+            paddingLeft: window.innerWidth < 768 ? "6px" : "0",
+            paddingRight: window.innerWidth < 768 ? "6px" : "0",
+            boxSizing: "border-box",
             flexWrap: "nowrap",
             overflowX: "auto",
             paddingBottom: "10px",
@@ -319,8 +322,8 @@ function App() {
                   border: `2px solid ${colors[index]}`,
                   borderRadius: "20px",
                   padding: window.innerWidth < 768 ? "12px" : "20px",
-                  width: window.innerWidth < 768 ? "110px" : "220px",
-                  minWidth: window.innerWidth < 768 ? "110px" : "220px",
+                  width: window.innerWidth < 768 ? "104px" : "220px",
+                  minWidth: window.innerWidth < 768 ? "104px" : "220px",
                   textAlign: "center",
                   boxShadow: `0 0 25px ${colors[index]}`,
                 }}
