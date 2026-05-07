@@ -116,7 +116,7 @@ function App() {
         background:
           "radial-gradient(circle at top, #2a0000 0%, #050505 60%)",
         color: "white",
-        padding: "20px",
+        padding: window.innerWidth < 768 ? "6px" : "20px",
         fontFamily: "'Orbitron', sans-serif",
         overflow: "hidden",
         position: "relative",
