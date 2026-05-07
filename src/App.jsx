@@ -71,17 +71,32 @@ function App() {
     .slice(0, 3);
 
   const columns = [
-    columnHelper.accessor("#", { header: "#" }),
+    columnHelper.accessor("#", {
+  header: "#",
+  size: 40,
+}),
     columnHelper.accessor("Player", { header: "Player" }),
     columnHelper.accessor("Team", { header: "Team" }),
-    columnHelper.accessor("M", { header: "M" }),
+    columnHelper.accessor("M", {
+  header: "M",
+  size: 45,
+}),
     columnHelper.accessor("W", { header: "W" }),
     columnHelper.accessor("D", { header: "D" }),
     columnHelper.accessor("L", { header: "L" }),
     columnHelper.accessor("GF", { header: "GF" }),
-    columnHelper.accessor("GA", { header: "GA" }),
-    columnHelper.accessor("GD", { header: "GD" }),
-    columnHelper.accessor("CS", { header: "CS" }),
+    columnHelper.accessor("GA", {
+  header: "GA",
+  size: 45,
+}),
+    columnHelper.accessor("GD", {
+  header: "GD",
+  size: 45,
+}),
+    columnHelper.accessor("CS", {
+  header: "CS",
+  size: 45,
+}),
     columnHelper.accessor("P", { header: "P" }),
   ];
 
@@ -181,10 +196,11 @@ function App() {
             transition={{ duration: 1 }}
             style={{
               textAlign: "center",
-              fontSize: "4rem",
+              fontSize: window.innerWidth < 768 ? "2.4rem" : "4rem",
+              lineHeight: window.innerWidth < 768 ? "1.2" : "1",
               fontWeight: "900",
               color: "#ff2a2a",
-              letterSpacing: "4px",
+              letterSpacing: window.innerWidth < 768 ? "2px" : "4px",
               textShadow:
                 "0 0 10px #ff0000, 0 0 20px #ff0000, 0 0 40px #ff0000",
               margin: "0",
@@ -301,8 +317,8 @@ function App() {
                   backdropFilter: "blur(12px)",
                   border: `2px solid ${colors[index]}`,
                   borderRadius: "20px",
-                  padding: "20px",
-                  width: "220px",
+                  padding: window.innerWidth < 768 ? "12px" : "20px",
+                  width: window.innerWidth < 768 ? "150px" : "220px",
                   textAlign: "center",
                   boxShadow: `0 0 25px ${colors[index]}`,
                 }}
@@ -385,6 +401,7 @@ function App() {
                         key={header.id}
                         onClick={header.column.getToggleSortingHandler()}
                         style={{
+                          width: header.column.columnDef.size,
                           padding: "16px",
                           background: "rgba(255,0,0,0.15)",
                           color: "#ff4d4d",
@@ -422,6 +439,7 @@ function App() {
                       <td
                         key={cell.id}
                         style={{
+                          width: cell.column.columnDef.size,
                           padding: "14px",
                           textAlign: "center",
                           borderBottom:
