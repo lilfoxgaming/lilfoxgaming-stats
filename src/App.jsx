@@ -118,8 +118,15 @@ function App() {
         color: "white",
         padding: window.innerWidth < 768 ? "6px" : "20px",
         fontFamily: "'Orbitron', sans-serif",
+        fontFamily: "'Anton SC', sans-serif",
         overflow: "hidden",
         position: "relative",
+        textShadow:
+        "0 0 8px rgba(255,215,0,0.9), 0 0 25px rgba(255,215,0,0.5)",
+        letterSpacing: "4px",
+        fontWeight: "700",
+        color: "#FFD700",
+        WebkitTextStroke: "1px rgba(255,255,255,0.12)",
       }}
     >
       <Particles
