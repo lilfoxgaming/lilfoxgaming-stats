@@ -114,7 +114,7 @@ function App() {
       style={{
         minHeight: "100vh",
         background:
-          "radial-gradient(circle at top, #2a0000 0%, #050505 60%)",
+        "radial-gradient(circle at top, #3a2b00 0%, #050505 60%)",
         color: "white",
         padding: window.innerWidth < 768 ? "6px" : "20px",
         fontFamily: "'Orbitron', sans-serif",
@@ -199,7 +199,7 @@ function App() {
               fontSize: window.innerWidth < 768 ? "2.4rem" : "4rem",
               lineHeight: window.innerWidth < 768 ? "1.2" : "1",
               fontWeight: "900",
-              color: "#ff2a2a",
+              color: "#FFD700",
               letterSpacing: window.innerWidth < 768 ? "2px" : "4px",
               textShadow:
                 "0 0 10px #ff0000, 0 0 20px #ff0000, 0 0 40px #ff0000",
@@ -239,7 +239,8 @@ function App() {
             alt="LilFoxGaming"
             style={{
               width: "40px",
-              filter: "drop-shadow(0 0 10px red)",
+              filter: "drop-shadow(0 0 10px rgba(255,0,0,0.45))",
+              
             }}
           />
 
@@ -278,11 +279,11 @@ function App() {
                 borderRadius: "12px",
                 border:
                   activeTab === tab.id
-                    ? "2px solid #ff2a2a"
+                    ? "2px solid #FFD700"
                     : "1px solid #444",
                 background:
                   activeTab === tab.id
-                    ? "rgba(255,0,0,0.15)"
+                    ? "rgba(255,215,0,0.18)"
                     : "rgba(255,255,255,0.03)",
                 color: activeTab === tab.id ? "#ff4d4d" : "#ccc",
                 cursor: "pointer",
@@ -317,7 +318,7 @@ function App() {
                 key={index}
                 whileHover={{ scale: 1.05 }}
                 style={{
-                  background: "rgba(255,255,255,0.05)",
+                  background: "rgba(255,215,0,0.05)",
                   backdropFilter: "blur(12px)",
                   border: `2px solid ${colors[index]}`,
                   borderRadius: "20px",
@@ -363,7 +364,7 @@ function App() {
               padding: "14px",
               width: "320px",
               borderRadius: "14px",
-              border: "1px solid #ff2a2a",
+              border: "1px solid #FFD700",
               background: "rgba(255,255,255,0.05)",
               color: "white",
               outline: "none",
@@ -408,8 +409,8 @@ function App() {
                         style={{
                           width: header.column.columnDef.size,
                           padding: "16px",
-                          background: "rgba(255,0,0,0.15)",
-                          color: "#ff4d4d",
+                          background: "rgba(255,215,0,0.12)",
+                          color: "#FFD700",
                           cursor: "pointer",
                           position: "sticky",
                           top: 0,
@@ -431,7 +432,7 @@ function App() {
                     key={row.id}
                     whileHover={{
                       scale: 1.01,
-                      backgroundColor: "rgba(255,0,0,0.08)",
+                      backgroundColor: "rgba(255,215,0,0.08)",
                     }}
                     style={{
                       background:
