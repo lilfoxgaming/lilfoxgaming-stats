@@ -297,6 +297,7 @@ function App() {
         </div>
 
         {/* Top Players */}
+        {activeTab === "individual" && (
         <div
           style={{
             display: "flex",
@@ -352,6 +353,7 @@ function App() {
             );
           })}
         </div>
+        )}
 
         {/* Search */}
         <div style={{ textAlign: "center", marginBottom: "25px" }}>
