@@ -191,24 +191,24 @@ function App() {
           />
 
           <motion.h1
-            initial={{ opacity: 0, y: -50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1 }}
-            style={{
-              textAlign: "center",
-              fontSize: window.innerWidth < 768 ? "2.4rem" : "4rem",
-              lineHeight: window.innerWidth < 768 ? "1.2" : "1",
-              fontWeight: "900",
-              color: "#FFD700",
-              letterSpacing: window.innerWidth < 768 ? "2px" : "4px",
-              textShadow:
-                "0 0 10px #ff0000, 0 0 20px #ff0000, 0 0 40px #ff0000",
-              margin: "0",
-              fontFamily: "'Orbitron', sans-serif",
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1 }}
+          style={{
+            textAlign: "center",
+            fontSize: window.innerWidth < 768 ? "2.4rem" : "4rem",
+            lineHeight: window.innerWidth < 768 ? "1.2" : "1",
+            fontWeight: "900",
+            color: "#FFD700",
+            letterSpacing: window.innerWidth < 768 ? "2px" : "4px",
+            textShadow:
+            "0 0 10px #ff0000, 0 0 20px #ff0000, 0 0 40px #ff0000",
+            margin: "0",
+            fontFamily: "'Orbitron', sans-serif",
             }}
-          >
-            WARLORDZ WAR 52
-          </motion.h1>
+>
+  WARLORDZ WAR 52
+</motion.h1>
         </div>
 
         <motion.h2
