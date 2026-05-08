@@ -240,6 +240,7 @@ function App() {
             style={{
               width: "40px",
               filter: "drop-shadow(0 0 10px rgba(255,0,0,0.5))",
+              
             }}
           />
 
