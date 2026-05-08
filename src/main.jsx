@@ -1,3 +1,4 @@
+import "@fontsource/orbitron";
 import "@fontsource/anton-sc";
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
