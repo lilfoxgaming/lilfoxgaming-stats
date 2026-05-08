@@ -251,7 +251,7 @@ function App() {
               margin: 0,
             }}
           >
-            Powered by YouTube.com/lilfoxgaming
+            Powered by YouTube/lilfoxgaming
           </p>
         </div>
 
