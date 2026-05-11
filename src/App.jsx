@@ -22,6 +22,8 @@ function App() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("individual");
+  const [selectedAward, setSelectedAward] =
+  useState("goldenBoot");
 
   const particlesInit = async (main) => {
     await loadFull(main);
@@ -69,6 +71,36 @@ function App() {
   const topPlayers = [...data]
     .sort((a, b) => Number(b.P) - Number(a.P))
     .slice(0, 3);
+
+  const awardsData = {
+  goldenBoot: [...data]
+    .sort((a, b) => Number(b.GF) - Number(a.GF))
+    .slice(0, 5),
+
+  goldenGlove: [...data]
+    .sort((a, b) => Number(b.CS) - Number(a.CS))
+    .slice(0, 5),
+
+  leastBeaten: [...data]
+    .sort((a, b) => Number(a.L) - Number(b.L))
+    .slice(0, 5),
+
+  bestDefender: [...data]
+    .sort((a, b) => Number(a.GA) - Number(b.GA))
+    .slice(0, 5),
+
+  goalsPerMatch: [...data]
+    .sort(
+      (a, b) =>
+        Number(b.GF) / Number(b.M) -
+        Number(a.GF) / Number(a.M)
+    )
+    .slice(0, 5),
+
+  mvp: [...data]
+    .sort((a, b) => Number(b.P) - Number(a.P))
+    .slice(0, 5),
+};
 
   const columns = [
     columnHelper.accessor("#", {
@@ -376,20 +408,81 @@ function App() {
         </div>
 
         {/* Content */}
-        {activeTab !== "individual" ? (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "60px 20px",
-              color: "#888",
-              fontSize: "1.5rem",
-            }}
-          >
-            {activeTab.toUpperCase()} COMING SOON
-          </div>
-        ) : loading ? (
-          <h2 style={{ textAlign: "center" }}>Loading...</h2>
-        ) : (
+        {activeTab === "awards" ? (
+  <div
+    style={{
+      marginTop: "30px",
+    }}
+  >
+    {/* Award Selector */}
+    <div
+      style={{
+        display: "flex",
+        gap: "10px",
+        overflowX: "auto",
+        paddingBottom: "15px",
+        marginBottom: "25px",
+      }}
+    >
+      {[
+        { id: "goldenBoot", label: "⚽ Golden Boot" },
+        { id: "goldenGlove", label: "🧤 Golden Glove" },
+        { id: "leastBeaten", label: "🛡 Least Beaten" },
+        { id: "bestDefender", label: "🔒 Best Defender" },
+        { id: "goalsPerMatch", label: "🎯 Goals/Match" },
+        { id: "mvp", label: "👑 MVP" },
+      ].map((award) => (
+        <button
+          key={award.id}
+          onClick={() => setSelectedAward(award.id)}
+          style={{
+            padding: "12px 18px",
+            borderRadius: "12px",
+            border:
+              selectedAward === award.id
+                ? "2px solid #FFD700"
+                : "1px solid #444",
+            background:
+              selectedAward === award.id
+                ? "rgba(255,215,0,0.18)"
+                : "rgba(255,255,255,0.04)",
+            color:
+              selectedAward === award.id
+                ? "#FFD700"
+                : "#ccc",
+            cursor: "pointer",
+            whiteSpace: "nowrap",
+            fontFamily: "'Orbitron', sans-serif",
+            fontWeight: "bold",
+          }}
+        >
+          {award.label}
+        </button>
+      ))}
+    </div>
+
+    <div
+      style={{
+        textAlign: "center",
+        color: "#888",
+        padding: "40px",
+      }}
+    >
+      Awards Section Ready 🔥
+    </div>
+  </div>
+) : activeTab !== "individual" ? (
+  <div
+    style={{
+      textAlign: "center",
+      padding: "60px 20px",
+      color: "#888",
+      fontSize: "1.5rem",
+    }}
+  >
+    {activeTab.toUpperCase()} COMING SOON
+  </div>
+) : (
           <div style={{ overflowX: "auto" }}>
             <table
               style={{
