@@ -874,7 +874,6 @@ const eligiblePlayers = data.filter(
       </tbody>
     </table>
   </div>
-) : activeTab !== "individual" ? (
 ) : (
           <div style={{ overflowX: "auto" }}>
             <table
