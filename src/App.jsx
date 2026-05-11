@@ -67,29 +67,41 @@ function App() {
       player.Player?.toLowerCase().includes(search.toLowerCase())
     );
   }, [data, search]);
+  const maxMatches = Math.max(
+  ...data.map((player) => Number(player.M) || 0)
+);
 
-  const topPlayers = [...data]
+const minimumMatchesRequired = Math.ceil(
+  maxMatches * 0.75
+);
+
+const eligiblePlayers = data.filter(
+  (player) =>
+    Number(player.M) >= minimumMatchesRequired
+);
+
+  const topPlayers = [...eligiblePlayers]
     .sort((a, b) => Number(b.P) - Number(a.P))
     .slice(0, 3);
 
   const awardsData = {
-  goldenBoot: [...data]
+  goldenBoot: [...eligiblePlayers]
     .sort((a, b) => Number(b.GF) - Number(a.GF))
     .slice(0, 5),
 
-  goldenGlove: [...data]
+  goldenGlove: [...eligiblePlayers]
     .sort((a, b) => Number(b.CS) - Number(a.CS))
     .slice(0, 5),
 
-  leastBeaten: [...data]
+  leastBeaten: [...eligiblePlayers]
     .sort((a, b) => Number(a.L) - Number(b.L))
     .slice(0, 5),
 
-  bestDefender: [...data]
+  bestDefender: [...eligiblePlayers]
     .sort((a, b) => Number(a.GA) - Number(b.GA))
     .slice(0, 5),
 
-  goalsPerMatch: [...data]
+  goalsPerMatch: [...eligiblePlayers]
     .sort(
       (a, b) =>
         Number(b.GF) / Number(b.M) -
@@ -97,7 +109,7 @@ function App() {
     )
     .slice(0, 5),
 
-  mvp: [...data]
+  mvp: [...eligiblePlayers]
     .sort((a, b) => Number(b.P) - Number(a.P))
     .slice(0, 5),
 };
@@ -461,15 +473,86 @@ function App() {
       ))}
     </div>
 
-    <div
-      style={{
-        textAlign: "center",
-        color: "#888",
-        padding: "40px",
-      }}
-    >
-      Awards Section Ready 🔥
-    </div>
+    {/* Featured Winner */}
+<motion.div
+  initial={{ opacity: 0, y: 30 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.5 }}
+  style={{
+    background: "rgba(255,215,0,0.06)",
+    border: "2px solid #FFD700",
+    borderRadius: "24px",
+    padding: "25px",
+    textAlign: "center",
+    marginBottom: "30px",
+    boxShadow: "0 0 25px rgba(255,215,0,0.3)",
+    backdropFilter: "blur(12px)",
+  }}
+>
+  <h2
+    style={{
+      fontSize: "3rem",
+      marginBottom: "10px",
+    }}
+  >
+    🏆
+  </h2>
+
+  <h1
+    style={{
+      color: "#FFD700",
+      fontSize:
+        window.innerWidth < 768 ? "2rem" : "3rem",
+      marginBottom: "10px",
+      fontFamily: "'Anton SC', sans-serif",
+      letterSpacing: "2px",
+    }}
+  >
+    {awardsData[selectedAward][0]?.Player}
+  </h1>
+
+  <p
+    style={{
+      color: "#bbb",
+      fontSize: "1.1rem",
+      marginBottom: "10px",
+    }}
+  >
+    Team: {awardsData[selectedAward][0]?.Team}
+  </p>
+
+  <h2
+    style={{
+      color: "#fff",
+      fontSize: "1.8rem",
+    }}
+  >
+    {selectedAward === "goldenBoot" &&
+      `${awardsData[selectedAward][0]?.GF} Goals`}
+
+    {selectedAward === "goldenGlove" &&
+      `${awardsData[selectedAward][0]?.CS} Clean Sheets`}
+
+    {selectedAward === "leastBeaten" &&
+      `${awardsData[selectedAward][0]?.L} Losses`}
+
+    {selectedAward === "bestDefender" &&
+      `${awardsData[selectedAward][0]?.GA} Goals Against`}
+
+    {selectedAward === "goalsPerMatch" &&
+      `${(
+        Number(
+          awardsData[selectedAward][0]?.GF
+        ) /
+        Number(
+          awardsData[selectedAward][0]?.M
+        )
+      ).toFixed(2)} Goals/Match`}
+
+    {selectedAward === "mvp" &&
+      `${awardsData[selectedAward][0]?.P} Points`}
+  </h2>
+</motion.div>
   </div>
 ) : activeTab !== "individual" ? (
   <div
