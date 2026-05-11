@@ -183,6 +183,13 @@ const eligiblePlayers = data.filter(
     getSortedRowModel: getSortedRowModel(),
   });
 
+  const cellStyle = {
+  padding: "14px",
+  textAlign: "center",
+  borderBottom:
+    "1px solid rgba(255,255,255,0.08)",
+};
+
   return (
     <div
       style={{
@@ -739,17 +746,135 @@ const eligiblePlayers = data.filter(
   </table>
 </div>
   </div>
-) : activeTab !== "individual" ? (
+  ) : activeTab === "standings" ? (
   <div
     style={{
-      textAlign: "center",
-      padding: "60px 20px",
-      color: "#888",
-      fontSize: "1.5rem",
+      overflowX: "auto",
     }}
   >
-    {activeTab.toUpperCase()} COMING SOON
+    <table
+      style={{
+        width: "100%",
+        borderCollapse: "collapse",
+        background: "rgba(255,255,255,0.05)",
+        backdropFilter: "blur(12px)",
+        borderRadius: "16px",
+        overflow: "hidden",
+      }}
+    >
+      <thead>
+        <tr>
+          {[
+            "Position",
+            "Team Name",
+            "M",
+            "W",
+            "D",
+            "L",
+            "GF",
+            "GA",
+            "GD",
+            "P",
+            "Form",
+          ].map((header) => (
+            <th
+              key={header}
+              style={{
+                padding: "14px",
+                background: "rgba(255,215,0,0.12)",
+                color: "#FFD700",
+                textAlign: "center",
+              }}
+            >
+              {header}
+            </th>
+          ))}
+        </tr>
+      </thead>
+
+      <tbody>
+        {standingsData.map((team, index) => (
+          <motion.tr
+            key={index}
+            whileHover={{
+              backgroundColor:
+                "rgba(255,215,0,0.08)",
+            }}
+            style={{
+              background:
+                index % 2 === 0
+                  ? "rgba(255,255,255,0.03)"
+                  : "rgba(255,255,255,0.01)",
+            }}
+          >
+            <td style={cellStyle}>
+              {team.Position}
+            </td>
+
+            <td style={cellStyle}>
+              {team["Team Name"]}
+            </td>
+
+            <td style={cellStyle}>{team.M}</td>
+            <td style={cellStyle}>{team.W}</td>
+            <td style={cellStyle}>{team.D}</td>
+            <td style={cellStyle}>{team.L}</td>
+            <td style={cellStyle}>{team.GF}</td>
+            <td style={cellStyle}>{team.GA}</td>
+            <td style={cellStyle}>{team.GD}</td>
+
+            <td
+              style={{
+                ...cellStyle,
+                color: "#FFD700",
+                fontWeight: "bold",
+              }}
+            >
+              {team.P}
+            </td>
+
+            <td style={cellStyle}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: "4px",
+                }}
+              >
+                {team.Form?.split("").map(
+                  (result, idx) => (
+                    <span
+                      key={idx}
+                      style={{
+                        width: "24px",
+                        height: "24px",
+                        borderRadius: "50%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "0.8rem",
+                        fontWeight: "bold",
+                        background:
+                          result === "W"
+                            ? "#16a34a"
+                            : result === "D"
+                            ? "#f59e0b"
+                            : "#dc2626",
+                        color: "white",
+                      }}
+                    >
+                      {result}
+                    </span>
+                  )
+                )}
+              </div>
+            </td>
+          </motion.tr>
+        ))}
+      </tbody>
+    </table>
   </div>
+) : activeTab !== "individual" ? (
 ) : (
           <div style={{ overflowX: "auto" }}>
             <table
