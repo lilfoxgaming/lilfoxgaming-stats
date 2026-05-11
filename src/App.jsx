@@ -297,13 +297,18 @@ const eligiblePlayers = data.filter(
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
           style={{
-            textAlign: "center",
-            color: "#ddd",
-            marginBottom: "5px",
-            fontSize: "1.5rem",
-          }}
+  textAlign: "center",
+  color: "#FFD700",
+  marginBottom: "8px",
+  fontSize: window.innerWidth < 768 ? "1rem" : "1.6rem",
+  letterSpacing: "4px",
+  fontWeight: "bold",
+  textTransform: "uppercase",
+  textShadow:
+    "0 0 8px rgba(255,215,0,0.7), 0 0 18px rgba(255,215,0,0.5)",
+}}
         >
-          Individual Performance
+          ...LEGENDS ARE MADE HERE...
         </motion.h2>
 
         <div
