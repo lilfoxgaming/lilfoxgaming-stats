@@ -553,6 +553,161 @@ const eligiblePlayers = data.filter(
       `${awardsData[selectedAward][0]?.P} Points`}
   </h2>
 </motion.div>
+{/* Top 5 Leaderboard */}
+<div
+  style={{
+    overflowX: "auto",
+  }}
+>
+  <table
+    style={{
+      width: "100%",
+      borderCollapse: "collapse",
+      background: "rgba(255,255,255,0.04)",
+      borderRadius: "16px",
+      overflow: "hidden",
+      backdropFilter: "blur(10px)",
+    }}
+  >
+    <thead>
+      <tr>
+        <th
+          style={{
+            padding: "16px",
+            background: "rgba(255,215,0,0.15)",
+            color: "#FFD700",
+          }}
+        >
+          Rank
+        </th>
+
+        <th
+          style={{
+            padding: "16px",
+            background: "rgba(255,215,0,0.15)",
+            color: "#FFD700",
+          }}
+        >
+          Player
+        </th>
+
+        <th
+          style={{
+            padding: "16px",
+            background: "rgba(255,215,0,0.15)",
+            color: "#FFD700",
+          }}
+        >
+          Team
+        </th>
+
+        <th
+          style={{
+            padding: "16px",
+            background: "rgba(255,215,0,0.15)",
+            color: "#FFD700",
+          }}
+        >
+          Stat
+        </th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {awardsData[selectedAward].map(
+        (player, index) => (
+          <motion.tr
+            key={index}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              delay: index * 0.08,
+            }}
+            style={{
+              background:
+                index % 2 === 0
+                  ? "rgba(255,255,255,0.03)"
+                  : "rgba(255,255,255,0.01)",
+            }}
+          >
+            <td
+              style={{
+                padding: "14px",
+                textAlign: "center",
+                color:
+                  index === 0
+                    ? "#FFD700"
+                    : "#ddd",
+                fontWeight: "bold",
+              }}
+            >
+              {index === 0
+                ? "🥇"
+                : index === 1
+                ? "🥈"
+                : index === 2
+                ? "🥉"
+                : `#${index + 1}`}
+            </td>
+
+            <td
+              style={{
+                padding: "14px",
+                textAlign: "center",
+              }}
+            >
+              {player.Player}
+            </td>
+
+            <td
+              style={{
+                padding: "14px",
+                textAlign: "center",
+                color: "#bbb",
+              }}
+            >
+              {player.Team}
+            </td>
+
+            <td
+              style={{
+                padding: "14px",
+                textAlign: "center",
+                color: "#FFD700",
+                fontWeight: "bold",
+              }}
+            >
+              {selectedAward === "goldenBoot" &&
+                player.GF}
+
+              {selectedAward ===
+                "goldenGlove" &&
+                player.CS}
+
+              {selectedAward ===
+                "leastBeaten" &&
+                player.L}
+
+              {selectedAward ===
+                "bestDefender" &&
+                player.GA}
+
+              {selectedAward ===
+                "goalsPerMatch" &&
+                (
+                  Number(player.GF) /
+                  Number(player.M)
+                ).toFixed(2)}
+
+              {selectedAward === "mvp" &&
+                player.P}
+            </td>
+          </motion.tr>
+        )
+      )}
+    </tbody>
+  </table>
+</div>
   </div>
 ) : activeTab !== "individual" ? (
   <div
