@@ -874,6 +874,17 @@ const eligiblePlayers = data.filter(
       </tbody>
     </table>
   </div>
+) : activeTab !== "individual" ? (
+  <div
+    style={{
+      textAlign: "center",
+      padding: "60px 20px",
+      color: "#888",
+      fontSize: "1.5rem",
+    }}
+  >
+    {activeTab.toUpperCase()} COMING SOON
+  </div>
 ) : (
           <div style={{ overflowX: "auto" }}>
             <table
