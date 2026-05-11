@@ -13,11 +13,14 @@ import { loadFull } from "tsparticles";
 
 const csvUrl =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vRI_9Fjhk6xaWi4uESJlJWcVuf_ojIfU93JKNeNL6F0CbQB4oEgHjarl8TrkU2FvnYI3OFiy5Rr7uH_/pub?gid=114858707&single=true&output=csv";
+  const standingsUrl =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vRI_9Fjhk6xaWi4uESJlJWcVuf_ojIfU93JKNeNL6F0CbQB4oEgHjarl8TrkU2FvnYI3OFiy5Rr7uH_/pub?gid=0&single=true&output=csv";
 
 const columnHelper = createColumnHelper();
 
 function App() {
   const [data, setData] = useState([]);
+  const [standingsData, setStandingsData] = useState([]);
   const [sorting, setSorting] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -58,8 +61,35 @@ function App() {
         setLoading(false);
       }
     }
+    async function fetchStandings() {
+  try {
+    const response = await fetch(standingsUrl);
+    const csvText = await response.text();
+
+    Papa.parse(csvText, {
+      header: true,
+      skipEmptyLines: true,
+      complete: function (results) {
+        const cleanedData = results.data.map((row) => {
+          const cleanedRow = {};
+
+          Object.keys(row).forEach((key) => {
+            cleanedRow[key.trim()] = row[key];
+          });
+
+          return cleanedRow;
+        });
+
+        setStandingsData(cleanedData);
+      },
+    });
+  } catch (error) {
+    console.error("Standings Fetch Error:", error);
+  }
+}
 
     fetchData();
+    fetchStandings();
   }, []);
 
   const filteredData = useMemo(() => {
