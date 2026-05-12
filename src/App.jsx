@@ -15,12 +15,15 @@ const csvUrl =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vRI_9Fjhk6xaWi4uESJlJWcVuf_ojIfU93JKNeNL6F0CbQB4oEgHjarl8TrkU2FvnYI3OFiy5Rr7uH_/pub?gid=114858707&single=true&output=csv";
   const standingsUrl =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vRI_9Fjhk6xaWi4uESJlJWcVuf_ojIfU93JKNeNL6F0CbQB4oEgHjarl8TrkU2FvnYI3OFiy5Rr7uH_/pub?gid=0&single=true&output=csv";
+  const fixturesUrl =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vRI_9Fjhk6xaWi4uESJlJWcVuf_ojIfU93JKNeNL6F0CbQB4oEgHjarl8TrkU2FvnYI3OFiy5Rr7uH_/pub?gid=1112620147&single=true&output=csv";
 
 const columnHelper = createColumnHelper();
 
 function App() {
   const [data, setData] = useState([]);
   const [standingsData, setStandingsData] = useState([]);
+  const [fixturesData, setFixturesData] = useState([]);
   const [sorting, setSorting] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -87,9 +90,37 @@ function App() {
     console.error("Standings Fetch Error:", error);
   }
 }
+async function fetchFixtures() {
+  try {
+    const response = await fetch(fixturesUrl);
+    const csvText = await response.text();
+
+    Papa.parse(csvText, {
+      header: true,
+      skipEmptyLines: true,
+      complete: function (results) {
+        const cleanedData = results.data.map((row) => {
+          const cleanedRow = {};
+
+          Object.keys(row).forEach((key) => {
+            cleanedRow[key.trim()] = row[key];
+          });
+
+          return cleanedRow;
+        });
+
+        console.log(cleanedData[0]);
+        setFixturesData(cleanedData);
+      },
+    });
+  } catch (error) {
+    console.error("Fixtures Fetch Error:", error);
+  }
+}
 
     fetchData();
     fetchStandings();
+    fetchFixtures();
   }, []);
 
   const filteredData = useMemo(() => {
@@ -113,6 +144,21 @@ const eligiblePlayers = data.filter(
   const topPlayers = [...eligiblePlayers]
     .sort((a, b) => Number(b.P) - Number(a.P))
     .slice(0, 3);
+
+  const groupedFixtures = fixturesData.reduce(
+  (acc, match) => {
+    const matchday = match.Matchday;
+
+    if (!acc[matchday]) {
+      acc[matchday] = [];
+    }
+
+    acc[matchday].push(match);
+
+    return acc;
+  },
+  {}
+);  
 
   const awardsData = {
   goldenBoot: [...eligiblePlayers]
@@ -267,7 +313,7 @@ const eligiblePlayers = data.filter(
             transition={{ duration: 1 }}
             style={{
               width: "90px",
-              filter: "drop-shadow(0 0 15px red)",
+              filter: "drop-shadow(0 0 12px rgba(0,0,0,0.9))",
             }}
           />
 
@@ -283,7 +329,7 @@ const eligiblePlayers = data.filter(
             color: "#FFD700",
             letterSpacing: window.innerWidth < 768 ? "2px" : "4px",
             textShadow:
-            "0 0 10px #ff0000, 0 0 20px #ff0000, 0 0 40px #ff0000",
+            "0 0 10px #070707, 0 0 20px #0e0d0d, 0 0 40px #010101",
             margin: "0",
             fontFamily: "'Orbitron', sans-serif",
             }}
@@ -294,7 +340,15 @@ const eligiblePlayers = data.filter(
 
         <motion.h2
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          animate={{
+  opacity: 1,
+  y: 0,
+  textShadow: [
+    "0 0 10px #0f0e0e, 0 0 20px #121111, 0 0 40px #141313",
+    "0 0 15px #FFD700, 0 0 30px #FFD700, 0 0 60px #060606",
+    "0 0 10px #070707, 0 0 20px #0a0909, 0 0 40px #0b0b0b",
+  ],
+}}
           transition={{ delay: 0.5 }}
           style={{
   textAlign: "center",
@@ -442,6 +496,7 @@ const eligiblePlayers = data.filter(
         )}
 
         {/* Search */}
+        {activeTab === "individual" && (
         <div style={{ textAlign: "center", marginBottom: "25px" }}>
           <input
             type="text"
@@ -460,6 +515,7 @@ const eligiblePlayers = data.filter(
             }}
           />
         </div>
+        )}
 
         {/* Content */}
         {activeTab === "awards" ? (
@@ -879,6 +935,169 @@ const eligiblePlayers = data.filter(
       </tbody>
     </table>
   </div>
+  ) : activeTab === "fixtures" ? (
+  <div
+    style={{
+      display: "flex",
+      flexDirection: "column",
+      gap: "30px",
+    }}
+  >
+    {Object.entries(groupedFixtures).map(
+      ([matchday, matches]) => (
+        <div
+          key={matchday}
+          style={{
+            background:
+              "rgba(255,255,255,0.04)",
+            borderRadius: "20px",
+            padding: "20px",
+            backdropFilter: "blur(12px)",
+            border:
+              "1px solid rgba(255,215,0,0.15)",
+          }}
+        >
+          <h2
+            style={{
+              color: "#FFD700",
+              marginBottom: "20px",
+              textAlign: "center",
+              letterSpacing: "2px",
+            }}
+          >
+            MATCHDAY {matchday}
+          </h2>
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "15px",
+            }}
+          >
+            {matches.map((match, index) => {
+              const homeScore =
+                match["H Score"]
+
+              const awayScore =
+                match["A Score"]
+
+              const completed =
+                homeScore !== "" &&
+                awayScore !== "";
+
+              const homeWon =
+                Number(homeScore) >
+                Number(awayScore);
+
+              const awayWon =
+                Number(awayScore) >
+                Number(homeScore);
+
+              return (
+                <motion.div
+                  key={index}
+                  whileHover={{
+                    scale: 1.01,
+                  }}
+                  style={{
+                    background:
+                      "rgba(255,255,255,0.03)",
+                    borderRadius: "16px",
+                    padding: "18px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent:
+                      "space-between",
+                    gap: "15px",
+                    flexWrap: "wrap",
+                    border: completed
+                      ? "1px solid rgba(255,215,0,0.2)"
+                      : "1px solid rgba(255,255,255,0.08)",
+                  }}
+                >
+                  <div
+                    style={{
+                      flex: 1,
+                      textAlign: "right",
+                      fontWeight: homeWon
+                        ? "bold"
+                        : "normal",
+                      color: homeWon
+                        ? "#FFD700"
+                        : "white",
+                    }}
+                  >
+                    {match["Home"]}
+                  </div>
+
+                  <div
+                    style={{
+                      minWidth: "120px",
+                      textAlign: "center",
+                      fontSize: "1.2rem",
+                      fontWeight: "bold",
+                      color: "#FFD700",
+                    }}
+                  >
+                    {completed ? (
+  <>
+    <span
+      style={{
+        color: homeWon
+          ? "#22c55e"
+          : "white",
+      }}
+    >
+      {homeScore}
+    </span>
+
+    <span
+      style={{
+        margin: "0 8px",
+        color: "white",
+      }}
+    >
+      -
+    </span>
+
+    <span
+      style={{
+        color: awayWon
+          ? "#22c55e"
+          : "white",
+      }}
+    >
+      {awayScore}
+    </span>
+  </>
+) : (
+  "VS"
+)}
+                  </div>
+
+                  <div
+                    style={{
+                      flex: 1,
+                      textAlign: "left",
+                      fontWeight: awayWon
+                        ? "bold"
+                        : "normal",
+                      color: awayWon
+                        ? "#FFD700"
+                        : "white",
+                    }}
+                  >
+                    {match["Away"]}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      )
+    )}
+  </div>
 ) : activeTab !== "individual" ? (
   <div
     style={{
@@ -888,6 +1107,7 @@ const eligiblePlayers = data.filter(
       fontSize: "1.5rem",
     }}
   >
+    
     {activeTab.toUpperCase()} COMING SOON
   </div>
 ) : (
