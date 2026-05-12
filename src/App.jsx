@@ -1010,7 +1010,7 @@ const eligiblePlayers = data.filter(
                     justifyContent:
                       "space-between",
                     gap: "15px",
-                    flexWrap: "wrap",
+                    flexWrap: "nowrap",
                     border: completed
                       ? "1px solid rgba(255,215,0,0.2)"
                       : "1px solid rgba(255,255,255,0.08)",
@@ -1020,6 +1020,9 @@ const eligiblePlayers = data.filter(
                     style={{
                       flex: 1,
                       textAlign: "right",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
                       fontWeight: homeWon
                         ? "bold"
                         : "normal",
@@ -1080,6 +1083,9 @@ const eligiblePlayers = data.filter(
                     style={{
                       flex: 1,
                       textAlign: "left",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
                       fontWeight: awayWon
                         ? "bold"
                         : "normal",
