@@ -535,12 +535,12 @@ const eligiblePlayers = data.filter(
       }}
     >
       {[
-        { id: "goldenBoot", label: "⚽ Golden Boot" },
-        { id: "goldenGlove", label: "🧤 Golden Glove" },
-        { id: "leastBeaten", label: "🛡 Least Beaten" },
-        { id: "bestDefender", label: "🔒 Best Defender" },
-        { id: "goalsPerMatch", label: "🎯 Goals/Match" },
-        { id: "mvp", label: "👑 MVP" },
+        { id: "goldenBoot", label: "⚽" },
+        { id: "goldenGlove", label: "🧤" },
+        { id: "leastBeaten", label: "🛡" },
+        { id: "bestDefender", label: "🔒" },
+        { id: "goalsPerMatch", label: "🎯" },
+        { id: "mvp", label: "👑" },
       ].map((award) => (
         <button
           key={award.id}
@@ -570,6 +570,28 @@ const eligiblePlayers = data.filter(
         </button>
       ))}
     </div>
+    <h2
+  style={{
+    textAlign: "center",
+    color: "#FFD700",
+    marginBottom: "20px",
+    letterSpacing: "2px",
+    textShadow:
+      "0 0 10px rgba(0,0,0,0.8)",
+  }}
+>
+  {selectedAward === "goldenBoot"
+    ? "⚽Golden Boot⚽"
+    : selectedAward === "goldenGlove"
+    ? "🧤Golden Glove🧤"
+    : selectedAward === "leastBeaten"
+    ? "🛡Least Beaten🛡"
+    : selectedAward === "bestDefender"
+    ? "🔒Best Defender🔒"
+    : selectedAward === "goalsPerMatch"
+    ? "🎯Goals Per Match🎯"
+    : "👑Most Valuable Player👑"}
+</h2>
 
     {/* Featured Winner */}
 <motion.div
@@ -652,6 +674,7 @@ const eligiblePlayers = data.filter(
   </h2>
 </motion.div>
 {/* Top 5 Leaderboard */}
+
 <div
   style={{
     overflowX: "auto",
