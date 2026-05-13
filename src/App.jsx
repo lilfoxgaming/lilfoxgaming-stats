@@ -10,6 +10,7 @@ import {
 import { motion } from "framer-motion";
 import Particles from "react-tsparticles";
 import { loadSlim } from "tsparticles-slim";
+import "@fontsource/rubik-glitch";
 
 const csvUrl =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vRI_9Fjhk6xaWi4uESJlJWcVuf_ojIfU93JKNeNL6F0CbQB4oEgHjarl8TrkU2FvnYI3OFiy5Rr7uH_/pub?gid=114858707&single=true&output=csv";
@@ -327,11 +328,11 @@ const eligiblePlayers = data.filter(
             lineHeight: window.innerWidth < 768 ? "1.2" : "1",
             fontWeight: "900",
             color: "#FFD700",
-            letterSpacing: window.innerWidth < 768 ? "2px" : "4px",
+            letterSpacing: window.innerWidth < 768 ? "1px" : "2px",
             textShadow:
             "0 0 10px #070707, 0 0 20px #0e0d0d, 0 0 40px #010101",
             margin: "0",
-            fontFamily: "'Orbitron', sans-serif",
+            fontFamily: "'Rubik Glitch', sans-serif",
             }}
 >
   WARLORDZ WAR 52
@@ -408,7 +409,7 @@ const eligiblePlayers = data.filter(
           }}
         >
           {[
-            { id: "individual", label: "Individual Performance" },
+            { id: "individual", label: "Individual" },
             { id: "standings", label: "Standings" },
             { id: "awards", label: "Awards" },
             { id: "fixtures", label: "Fixtures" },
@@ -507,7 +508,10 @@ const eligiblePlayers = data.filter(
             onChange={(e) => setSearch(e.target.value)}
             style={{
               padding: "14px",
-              width: "320px",
+              width:
+              window.innerWidth < 768
+              ? "92%"
+              : "320px",
               borderRadius: "14px",
               border: "1px solid #FFD700",
               background: "rgba(255,255,255,0.05)",
@@ -1029,7 +1033,10 @@ const eligiblePlayers = data.filter(
                     background:
                       "rgba(255,255,255,0.03)",
                     borderRadius: "16px",
-                    padding: "18px",
+                    padding:
+                    window.innerWidth < 768
+                    ? "14px"
+                    : "18px",
                     display: "flex",
                     alignItems: "center",
                     justifyContent:
@@ -1062,9 +1069,9 @@ const eligiblePlayers = data.filter(
                   <div
                     style={{
                       minWidth:
-  window.innerWidth < 768
-    ? "80px"
-    : "120px",
+                      window.innerWidth < 768
+                      ? "80px"
+                      : "120px",
                       textAlign: "center",
                       fontSize: "1.2rem",
                       fontWeight: "bold",
