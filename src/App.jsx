@@ -11,6 +11,9 @@ import { motion } from "framer-motion";
 import Particles from "react-tsparticles";
 import { loadSlim } from "tsparticles-slim";
 import "@fontsource/rubik-glitch";
+import "@fontsource/butcherman";
+import "@fontsource/rubik-wet-paint";
+import "@fontsource/jim-nightshade";
 
 const csvUrl =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vRI_9Fjhk6xaWi4uESJlJWcVuf_ojIfU93JKNeNL6F0CbQB4oEgHjarl8TrkU2FvnYI3OFiy5Rr7uH_/pub?gid=114858707&single=true&output=csv";
@@ -327,12 +330,12 @@ const eligiblePlayers = data.filter(
             fontSize: window.innerWidth < 768 ? "2.4rem" : "4rem",
             lineHeight: window.innerWidth < 768 ? "1.2" : "1",
             fontWeight: "900",
-            color: "#FFD700",
+            color: "#aa9304",
             letterSpacing: window.innerWidth < 768 ? "1px" : "2px",
             textShadow:
             "0 0 10px #070707, 0 0 20px #0e0d0d, 0 0 40px #010101",
             margin: "0",
-            fontFamily: "'Rubik Glitch', sans-serif",
+            fontFamily:"'Rubik Wet Paint', sans-serif",
             }}
 >
   WARLORDZ WAR 52
@@ -353,17 +356,17 @@ const eligiblePlayers = data.filter(
           transition={{ delay: 0.5 }}
           style={{
   textAlign: "center",
-  color: "#FFD700",
+  color: "#fb0505b1",
   marginBottom: "8px",
   fontSize: window.innerWidth < 768 ? "1rem" : "1.6rem",
-  letterSpacing: "4px",
+  letterSpacing: "2px",
   fontWeight: "bold",
-  textTransform: "uppercase",
   textShadow:
     "0 0 8px rgba(255,215,0,0.7), 0 0 18px rgba(255,215,0,0.5)",
+    fontFamily: "'Jim Nightshade', cursive",
 }}
         >
-          ...LEGENDS ARE MADE HERE...
+          ...Legends Are Made Here...
         </motion.h2>
 
         <div

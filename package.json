@@ -11,7 +11,11 @@
   },
   "dependencies": {
     "@fontsource/anton-sc": "^5.2.7",
+    "@fontsource/butcherman": "^5.2.8",
+    "@fontsource/jim-nightshade": "^5.2.8",
     "@fontsource/orbitron": "^5.2.8",
+    "@fontsource/rubik-glitch": "^5.2.7",
+    "@fontsource/rubik-wet-paint": "^5.2.7",
     "@tanstack/react-table": "^8.21.3",
     "framer-motion": "^12.38.0",
     "papaparse": "^5.5.3",
