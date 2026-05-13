@@ -421,7 +421,10 @@ const eligiblePlayers = data.filter(
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               style={{
-                padding: "12px 20px",
+                padding:
+  window.innerWidth < 768
+    ? "10px 12px"
+    : "12px 20px",
                 borderRadius: "12px",
                 border:
                   activeTab === tab.id
@@ -435,6 +438,11 @@ const eligiblePlayers = data.filter(
                 cursor: "pointer",
                 fontFamily: "'Orbitron', sans-serif",
                 fontWeight: "bold",
+                fontSize:
+  window.innerWidth < 768
+    ? "0.85rem"
+    : "1rem",
+whiteSpace: "nowrap",
               }}
             >
               {tab.label}
