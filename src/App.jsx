@@ -9,7 +9,7 @@ import {
 } from "@tanstack/react-table";
 import { motion } from "framer-motion";
 import Particles from "react-tsparticles";
-import { loadFull } from "tsparticles";
+import { loadSlim } from "tsparticles-slim";
 
 const csvUrl =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vRI_9Fjhk6xaWi4uESJlJWcVuf_ojIfU93JKNeNL6F0CbQB4oEgHjarl8TrkU2FvnYI3OFiy5Rr7uH_/pub?gid=114858707&single=true&output=csv";
@@ -32,7 +32,7 @@ function App() {
   useState("goldenBoot");
 
   const particlesInit = async (main) => {
-    await loadFull(main);
+    await loadSlim(main);
   };
 
   useEffect(() => {
@@ -245,7 +245,7 @@ const eligiblePlayers = data.filter(
         color: "white",
         padding: window.innerWidth < 768 ? "6px" : "20px",
         fontFamily: "'Orbitron', sans-serif",
-        overflow: "hidden",
+        overflowX: "hidden",
         position: "relative",
       }}
     >
@@ -402,7 +402,9 @@ const eligiblePlayers = data.filter(
             justifyContent: "center",
             gap: "15px",
             marginBottom: "30px",
-            flexWrap: "wrap",
+            flexWrap: "nowrap",
+            overflowX: "auto",
+            paddingBottom: "8px",
           }}
         >
           {[
@@ -1059,7 +1061,10 @@ const eligiblePlayers = data.filter(
 
                   <div
                     style={{
-                      minWidth: "120px",
+                      minWidth:
+  window.innerWidth < 768
+    ? "80px"
+    : "120px",
                       textAlign: "center",
                       fontSize: "1.2rem",
                       fontWeight: "bold",
@@ -1164,8 +1169,6 @@ const eligiblePlayers = data.filter(
                           background: "rgba(255,215,0,0.12)",
                           color: "#FFD700",
                           cursor: "pointer",
-                          position: "sticky",
-                          top: 0,
                         }}
                       >
                         {flexRender(
