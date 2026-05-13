@@ -413,7 +413,7 @@ const eligiblePlayers = data.filter(
         >
           {[
             { id: "individual", label: "Stats" },
-            { id: "standings", label: "Standings" },
+            { id: "standings", label: "Table" },
             { id: "awards", label: "Awards" },
             { id: "fixtures", label: "Fixtures" },
           ].map((tab) => (
