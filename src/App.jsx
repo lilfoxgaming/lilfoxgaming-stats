@@ -441,15 +441,12 @@ const eligiblePlayers = data.filter(
         <div
           style={{
             display: "flex",
-            justifyContent:
-            window.innerWidth < 768
-            ? "flex-start"
-            : "center",
+            justifyContent: "center",
             gap: window.innerWidth < 768 ? "6px" : "20px",
             paddingLeft: window.innerWidth < 768 ? "6px" : "0",
             paddingRight: window.innerWidth < 768 ? "6px" : "0",
             boxSizing: "border-box",
-            flexWrap: "wrap",
+            flexWrap: "nowrap",
             overflowX: "auto",
             paddingBottom: "10px",
           }}
@@ -532,6 +529,7 @@ const eligiblePlayers = data.filter(
       style={{
         display: "flex",
         gap: "10px",
+        overflowX: "auto",
         paddingBottom: "15px",
         marginBottom: "25px",
       }}
