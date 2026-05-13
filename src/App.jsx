@@ -409,7 +409,7 @@ const eligiblePlayers = data.filter(
           }}
         >
           {[
-            { id: "individual", label: "Individual" },
+            { id: "individual", label: "Stats" },
             { id: "standings", label: "Standings" },
             { id: "awards", label: "Awards" },
             { id: "fixtures", label: "Fixtures" },
