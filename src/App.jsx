@@ -737,6 +737,7 @@ whiteSpace: "nowrap",
               ? "2rem"
               : "3rem",
           marginBottom: "10px",
+          color: "white",
         }}
       >
         {standingsData[0]?.["Team Name"]}
@@ -780,6 +781,7 @@ whiteSpace: "nowrap",
               ? "2rem"
               : "3rem",
           marginBottom: "10px",
+          color: "white",
         }}
       >
         {awardsData.goldenBoot[0]?.Player}
@@ -824,6 +826,7 @@ whiteSpace: "nowrap",
               ? "2rem"
               : "3rem",
           marginBottom: "10px",
+          color: "white",
         }}
       >
         {awardsData.mvp[0]?.Player}
@@ -870,6 +873,7 @@ whiteSpace: "nowrap",
                   ? "1.4rem"
                   : "2.2rem",
               marginBottom: "10px",
+              color: "white",
             }}
           >
             {biggestWinMatch.Home} {biggestWinMatch["H Score"]} -{" "}
@@ -922,6 +926,7 @@ whiteSpace: "nowrap",
                   ? "2rem"
                   : "3rem",
               marginBottom: "10px",
+              color: "white",
             }}
           >
             {nextMatchday.Matchday}
@@ -977,6 +982,7 @@ whiteSpace: "nowrap",
               ? "2rem"
               : "3rem",
           marginBottom: "10px",
+          color: "white",
         }}
       >
         Archives
