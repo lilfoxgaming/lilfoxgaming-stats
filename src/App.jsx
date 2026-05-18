@@ -700,6 +700,7 @@ whiteSpace: "nowrap",
               color: "#bbb",
               marginTop: "6px",
               fontSize: "0.95rem",
+              fontFamily: "'Jim Nightshade', cursive",
             }}
           >
             {stat.label}
@@ -738,6 +739,7 @@ whiteSpace: "nowrap",
               : "3rem",
           marginBottom: "10px",
           color: "white",
+          fontFamily: "'Jim Nightshade', cursive",
         }}
       >
         {standingsData[0]?.["Team Name"]}
@@ -782,6 +784,7 @@ whiteSpace: "nowrap",
               : "3rem",
           marginBottom: "10px",
           color: "white",
+          fontFamily: "'Jim Nightshade', cursive",
         }}
       >
         {awardsData.goldenBoot[0]?.Player}
@@ -827,6 +830,7 @@ whiteSpace: "nowrap",
               : "3rem",
           marginBottom: "10px",
           color: "white",
+          fontFamily: "'Jim Nightshade', cursive",
         }}
       >
         {awardsData.mvp[0]?.Player}
@@ -874,6 +878,7 @@ whiteSpace: "nowrap",
                   : "2.2rem",
               marginBottom: "10px",
               color: "white",
+              fontFamily: "'Jim Nightshade', cursive",
             }}
           >
             {biggestWinMatch.Home} {biggestWinMatch["H Score"]} -{" "}
@@ -881,7 +886,7 @@ whiteSpace: "nowrap",
           </h1>
 
           <p style={{ color: "#bbb", fontSize: "1.1rem" }}>
-            {biggestWinMatch.Matchday} • Margin:{" "}
+            Matchday {biggestWinMatch.Matchday} • Margin:{" "}
             {Math.abs(
               Number(biggestWinMatch["H Score"]) -
                 Number(biggestWinMatch["A Score"])
@@ -927,6 +932,7 @@ whiteSpace: "nowrap",
                   : "3rem",
               marginBottom: "10px",
               color: "white",
+              fontFamily: "'Jim Nightshade', cursive",
             }}
           >
             {nextMatchday.Matchday}
@@ -983,6 +989,7 @@ whiteSpace: "nowrap",
               : "3rem",
           marginBottom: "10px",
           color: "white",
+          fontFamily: "'Jim Nightshade', cursive",
         }}
       >
         Archives
