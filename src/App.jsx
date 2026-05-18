@@ -31,7 +31,7 @@ function App() {
   const [sorting, setSorting] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("individual");
+  const [activeTab, setActiveTab] = useState("dashboard");
   const [selectedAward, setSelectedAward] =
   useState("goldenBoot");
 
@@ -233,6 +233,58 @@ const eligiblePlayers = data.filter(
     getSortedRowModel: getSortedRowModel(),
   });
 
+  const biggestWinMatch = [...fixturesData]
+  .filter(
+    (match) =>
+      match["H Score"] !== "" &&
+      match["A Score"] !== ""
+  )
+  .sort(
+    (a, b) =>
+      Math.abs(
+        Number(b["H Score"]) -
+        Number(b["A Score"])
+      ) -
+      Math.abs(
+        Number(a["H Score"]) -
+        Number(a["A Score"])
+      )
+  )[0];
+
+  const nextMatchday = fixturesData.find(
+  (match) =>
+    match["H Score"] === "" &&
+    match["A Score"] === ""
+);
+
+const nextMatchdayFixtures = fixturesData.filter(
+  (match) =>
+    match.Matchday === nextMatchday?.Matchday &&
+    match["H Score"] === "" &&
+    match["A Score"] === ""
+);
+
+const totalTeams = standingsData.length;
+
+const totalMatchesPlayed = fixturesData.filter(
+  (match) =>
+    match["H Score"] !== "" &&
+    match["A Score"] !== ""
+).length;
+
+const totalGoals = fixturesData.reduce(
+  (sum, match) =>
+    sum +
+    (Number(match["H Score"]) || 0) +
+    (Number(match["A Score"]) || 0),
+  0
+);
+
+const totalCleanSheets = data.reduce(
+  (sum, player) => sum + (Number(player.CS) || 0),
+  0
+);
+
   const cellStyle = {
   padding: "14px",
   textAlign: "center",
@@ -400,6 +452,7 @@ const eligiblePlayers = data.filter(
         </div>
 
         {/* Tabs */}
+        {activeTab !== "dashboard" && (
         <div
           style={{
             display: "flex",
@@ -449,6 +502,7 @@ whiteSpace: "nowrap",
             </button>
           ))}
         </div>
+        )}
 
         {/* Top Players */}
         {activeTab === "individual" && (
@@ -534,8 +588,412 @@ whiteSpace: "nowrap",
         </div>
         )}
 
+{activeTab !== "dashboard" && (
+  <div style={{ textAlign: "center", marginBottom: "20px" }}>
+    <button
+      onClick={() => setActiveTab("dashboard")}
+      style={{
+        padding: "10px 18px",
+        borderRadius: "12px",
+        border: "1px solid #FFD700",
+        background: "rgba(255,215,0,0.1)",
+        color: "#FFD700",
+        cursor: "pointer",
+        fontFamily: "'Orbitron', sans-serif",
+        fontWeight: "bold",
+        boxShadow: "0 0 12px rgba(255,215,0,0.15)",
+      }}
+    >
+      ← Dashboard
+    </button>
+  </div>
+)}
+
         {/* Content */}
-        {activeTab === "awards" ? (
+        {activeTab === "dashboard" ? (
+  <div
+    style={{
+  display: "grid",
+  gridTemplateColumns:
+    window.innerWidth < 768
+      ? "1fr"
+      : "1fr 1fr",
+  gap: "20px",
+  alignItems: "stretch",
+}}
+  >
+
+        {/* HERO STATS STRIP */}
+    <div
+      style={{
+        gridColumn:
+          window.innerWidth < 768
+            ? "span 1"
+            : "span 2",
+        display: "grid",
+        gridTemplateColumns:
+          window.innerWidth < 768
+            ? "1fr 1fr"
+            : "repeat(4, 1fr)",
+        gap: "15px",
+      }}
+    >
+      {[
+        {
+          label: "Teams",
+          value: totalTeams,
+          icon: "🛡",
+        },
+        {
+          label: "Matches",
+          value: totalMatchesPlayed,
+          icon: "⚔",
+        },
+        {
+          label: "Goals",
+          value: totalGoals,
+          icon: "⚽",
+        },
+        {
+          label: "Clean Sheets",
+          value: totalCleanSheets,
+          icon: "🧤",
+        },
+      ].map((stat, index) => (
+        <motion.div
+          key={index}
+          whileHover={{ scale: 1.03 }}
+          style={{
+            background: "rgba(255,255,255,0.05)",
+            border:
+              "1px solid rgba(255,215,0,0.2)",
+            borderRadius: "18px",
+            padding: "18px",
+            textAlign: "center",
+            backdropFilter: "blur(12px)",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "1.8rem",
+              marginBottom: "8px",
+            }}
+          >
+            {stat.icon}
+          </div>
+
+          <h1
+            style={{
+              color: "#FFD700",
+              margin: 0,
+              fontSize:
+                window.innerWidth < 768
+                  ? "1.8rem"
+                  : "2.4rem",
+            }}
+          >
+            {stat.value}
+          </h1>
+
+          <p
+            style={{
+              color: "#bbb",
+              marginTop: "6px",
+              fontSize: "0.95rem",
+            }}
+          >
+            {stat.label}
+          </p>
+        </motion.div>
+      ))}
+    </div>
+
+    {/* LEAGUE LEADER CARD */}
+    <motion.div
+      whileHover={{ scale: 1.02 }}
+      onClick={() => setActiveTab("standings")}
+      style={{
+        background: "rgba(255,255,255,0.05)",
+        border: "1px solid rgba(255,215,0,0.2)",
+        borderRadius: "20px",
+        padding: "24px",
+        cursor: "pointer",
+        backdropFilter: "blur(12px)",
+      }}
+    >
+      <h2
+        style={{
+          color: "#FFD700",
+          marginBottom: "10px",
+        }}
+      >
+        🏆 League Leader
+      </h2>
+
+      <h1
+        style={{
+          fontSize:
+            window.innerWidth < 768
+              ? "2rem"
+              : "3rem",
+          marginBottom: "10px",
+        }}
+      >
+        {standingsData[0]?.["Team Name"]}
+      </h1>
+
+      <p
+        style={{
+          color: "#bbb",
+          fontSize: "1.2rem",
+        }}
+      >
+        {standingsData[0]?.P} Points
+      </p>
+    </motion.div>
+    {/* GOLDEN BOOT LEADER CARD */}
+    <motion.div
+      whileHover={{ scale: 1.02 }}
+      onClick={() => setActiveTab("awards")}
+      style={{
+        background: "rgba(255,255,255,0.05)",
+        border: "1px solid rgba(255,215,0,0.2)",
+        borderRadius: "20px",
+        padding: "24px",
+        cursor: "pointer",
+        backdropFilter: "blur(12px)",
+      }}
+    >
+      <h2
+        style={{
+          color: "#FFD700",
+          marginBottom: "10px",
+        }}
+      >
+        ⚽ Golden Boot Leader
+      </h2>
+
+      <h1
+        style={{
+          fontSize:
+            window.innerWidth < 768
+              ? "2rem"
+              : "3rem",
+          marginBottom: "10px",
+        }}
+      >
+        {awardsData.goldenBoot[0]?.Player}
+      </h1>
+
+      <p
+        style={{
+          color: "#bbb",
+          fontSize: "1.2rem",
+        }}
+      >
+        {awardsData.goldenBoot[0]?.GF} Goals
+      </p>
+    </motion.div>
+
+    {/* MVP LEADER CARD */}
+    <motion.div
+      whileHover={{ scale: 1.02 }}
+      onClick={() => setActiveTab("awards")}
+      style={{
+        background: "rgba(255,255,255,0.05)",
+        border: "1px solid rgba(255,215,0,0.2)",
+        borderRadius: "20px",
+        padding: "24px",
+        cursor: "pointer",
+        backdropFilter: "blur(12px)",
+      }}
+    >
+      <h2
+        style={{
+          color: "#FFD700",
+          marginBottom: "10px",
+        }}
+      >
+        👑 MVP Leader
+      </h2>
+
+      <h1
+        style={{
+          fontSize:
+            window.innerWidth < 768
+              ? "2rem"
+              : "3rem",
+          marginBottom: "10px",
+        }}
+      >
+        {awardsData.mvp[0]?.Player}
+      </h1>
+
+      <p
+        style={{
+          color: "#bbb",
+          fontSize: "1.2rem",
+        }}
+      >
+        {awardsData.mvp[0]?.P} Points
+      </p>
+    </motion.div>
+
+            {/* BIGGEST WIN CARD */}
+    <motion.div
+      whileHover={{ scale: 1.02 }}
+      onClick={() => setActiveTab("fixtures")}
+      style={{
+        background: "rgba(255,255,255,0.05)",
+        border: "1px solid rgba(255,215,0,0.2)",
+        borderRadius: "20px",
+        padding: "24px",
+        cursor: "pointer",
+        backdropFilter: "blur(12px)",
+      }}
+    >
+      <h2
+        style={{
+          color: "#FFD700",
+          marginBottom: "10px",
+        }}
+      >
+        🔥 Biggest Win
+      </h2>
+
+      {biggestWinMatch ? (
+        <>
+          <h1
+            style={{
+              fontSize:
+                window.innerWidth < 768
+                  ? "1.4rem"
+                  : "2.2rem",
+              marginBottom: "10px",
+            }}
+          >
+            {biggestWinMatch.Home} {biggestWinMatch["H Score"]} -{" "}
+            {biggestWinMatch["A Score"]} {biggestWinMatch.Away}
+          </h1>
+
+          <p style={{ color: "#bbb", fontSize: "1.1rem" }}>
+            {biggestWinMatch.Matchday} • Margin:{" "}
+            {Math.abs(
+              Number(biggestWinMatch["H Score"]) -
+                Number(biggestWinMatch["A Score"])
+            )}
+          </p>
+        </>
+      ) : (
+        <p style={{ color: "#bbb", fontSize: "1.1rem" }}>
+          No completed matches yet.
+        </p>
+      )}
+    </motion.div>
+
+        {/* NEXT MATCHDAY CARD */}
+    <motion.div
+      whileHover={{ scale: 1.02 }}
+      onClick={() => setActiveTab("fixtures")}
+      style={{
+        background: "rgba(255,255,255,0.05)",
+        border: "1px solid rgba(255,215,0,0.2)",
+        borderRadius: "20px",
+        padding: "24px",
+        cursor: "pointer",
+        backdropFilter: "blur(12px)",
+      }}
+    >
+      <h2
+        style={{
+          color: "#FFD700",
+          marginBottom: "10px",
+        }}
+      >
+        🕒 Next Matchday
+      </h2>
+
+      {nextMatchday ? (
+        <>
+          <h1
+            style={{
+              fontSize:
+                window.innerWidth < 768
+                  ? "2rem"
+                  : "3rem",
+              marginBottom: "10px",
+            }}
+          >
+            {nextMatchday.Matchday}
+          </h1>
+
+          <p
+            style={{
+              color: "#bbb",
+              fontSize: "1.1rem",
+            }}
+          >
+            {nextMatchdayFixtures.length} Fixtures Scheduled
+          </p>
+        </>
+      ) : (
+        <p
+          style={{
+            color: "#bbb",
+            fontSize: "1.1rem",
+          }}
+        >
+          All fixtures completed.
+        </p>
+      )}
+    </motion.div>
+
+        {/* PREVIOUS SEASONS CARD */}
+    <motion.div
+      whileHover={{ scale: 1.02 }}
+      onClick={() => alert("Previous Seasons will be available from WAR 53 onwards.")}
+      style={{
+        background: "rgba(255,255,255,0.05)",
+        border: "1px solid rgba(255,215,0,0.2)",
+        borderRadius: "20px",
+        padding: "24px",
+        cursor: "pointer",
+        backdropFilter: "blur(12px)",
+      }}
+    >
+      <h2
+        style={{
+          color: "#FFD700",
+          marginBottom: "10px",
+        }}
+      >
+        📜 Previous Seasons
+      </h2>
+
+      <h1
+        style={{
+          fontSize:
+            window.innerWidth < 768
+              ? "2rem"
+              : "3rem",
+          marginBottom: "10px",
+        }}
+      >
+        Archives
+      </h1>
+
+      <p
+        style={{
+          color: "#bbb",
+          fontSize: "1.1rem",
+        }}
+      >
+        Previous season records will be available from WAR 53 onwards.
+      </p>
+    </motion.div>
+
+  </div>
+) : activeTab === "awards" ? (
   <div
     style={{
       marginTop: "30px",
