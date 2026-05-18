@@ -113,7 +113,6 @@ async function fetchFixtures() {
           return cleanedRow;
         });
 
-        console.log(cleanedData[0]);
         setFixturesData(cleanedData);
       },
     });
@@ -465,9 +464,10 @@ const totalCleanSheets = data.reduce(
           }}
         >
           {[
-            { id: "individual", label: "Stats" },
+           
             { id: "standings", label: "Table" },
             { id: "awards", label: "Awards" },
+            { id: "individual", label: "Stats" },
             { id: "fixtures", label: "Fixtures" },
           ].map((tab) => (
             <button
