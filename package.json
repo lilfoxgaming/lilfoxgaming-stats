@@ -17,6 +17,7 @@
     "@fontsource/rubik-glitch": "^5.2.7",
     "@fontsource/rubik-wet-paint": "^5.2.7",
     "@tanstack/react-table": "^8.21.3",
+    "@vercel/analytics": "^2.0.1",
     "framer-motion": "^12.38.0",
     "papaparse": "^5.5.3",
     "react": "^19.2.5",
