@@ -1,7 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import Papa from "papaparse";
-import { auth } from "./firebase";
+import { auth, db } from "./firebase";
 import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
 import {
   createColumnHelper,
   flexRender,
@@ -28,6 +38,22 @@ const columnHelper = createColumnHelper();
 
 function App() {
   const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
+const [managerName, setManagerName] = useState("");
+const [fantasyTeamName, setFantasyTeamName] = useState("");
+const [creatingProfile, setCreatingProfile] = useState(false);
+const [showAdminPanel, setShowAdminPanel] = useState(false);
+const [competitionName, setCompetitionName] = useState("");
+const [competitionType, setCompetitionType] = useState("worldcup");
+const [competitions, setCompetitions] = useState([]);
+const [selectedCompetition, setSelectedCompetition] = useState(null);
+
+const [showManageUsers, setShowManageUsers] = useState(false);
+
+const [userSearch, setUserSearch] = useState("");
+const [roleFilter, setRoleFilter] = useState("all");
+
+const [users, setUsers] = useState([]);
   const [data, setData] = useState([]);
   const [standingsData, setStandingsData] = useState([]);
   const [fixturesData, setFixturesData] = useState([]);
@@ -44,10 +70,191 @@ function App() {
   const handleGoogleLogin = async () => {
   try {
     const provider = new GoogleAuthProvider();
-    const result = await signInWithPopup(auth, provider);
-    setUser(result.user);
+
+    const result = await signInWithPopup(
+      auth,
+      provider
+    );
+
+    const loggedUser = result.user;
+
+    setUser(loggedUser);
+
+    const userRef = doc(
+      db,
+      "users",
+      loggedUser.uid
+    );
+
+    const userSnap = await getDoc(userRef);
+
+    if (userSnap.exists()) {
+      setProfile(userSnap.data());
+    } else {
+      setCreatingProfile(true);
+    }
+
   } catch (error) {
-    console.error("Login Error:", error);
+    console.error(
+      "Login Error:",
+      error
+    );
+  }
+};
+
+const handleCreateProfile = async () => {
+  if (!user) return;
+
+  const cleanManagerName = managerName.trim();
+  const cleanFantasyTeamName = fantasyTeamName.trim();
+
+  if (!cleanManagerName || !cleanFantasyTeamName) {
+    alert("Please enter both Manager Name and Fantasy Team Name.");
+    return;
+  }
+
+  const managerNameKey = cleanManagerName
+    .toLowerCase()
+    .replace(/\s+/g, "");
+
+  const fantasyTeamNameKey = cleanFantasyTeamName
+    .toLowerCase()
+    .replace(/\s+/g, "");
+
+  try {
+    const managerQuery = query(
+      collection(db, "users"),
+      where("managerNameKey", "==", managerNameKey)
+    );
+
+    const managerSnap = await getDocs(managerQuery);
+
+    if (!managerSnap.empty) {
+      alert("This Manager Name is already taken.");
+      return;
+    }
+
+    const teamQuery = query(
+      collection(db, "users"),
+      where("fantasyTeamNameKey", "==", fantasyTeamNameKey)
+    );
+
+    const teamSnap = await getDocs(teamQuery);
+
+    if (!teamSnap.empty) {
+      alert("This Fantasy Team Name is already taken.");
+      return;
+    }
+
+    const newProfile = {
+      uid: user.uid,
+      email: user.email,
+      googleName: user.displayName || "",
+      managerName: cleanManagerName,
+      managerNameKey,
+      fantasyTeamName: cleanFantasyTeamName,
+      fantasyTeamNameKey,
+      role: "player",
+      totalPoints: 0,
+      createdAt: new Date().toISOString(),
+    };
+
+    await setDoc(doc(db, "users", user.uid), newProfile);
+
+    setProfile(newProfile);
+    setCreatingProfile(false);
+
+    alert("Manager Profile created successfully!");
+  } catch (error) {
+    console.error("Profile Creation Error:", error);
+    alert("Something went wrong while creating profile.");
+  }
+};
+
+const handleCreateCompetition = async () => {
+  const cleanName = competitionName.trim();
+
+  if (!cleanName) {
+    alert("Please enter competition name.");
+    return;
+  }
+
+  try {
+    const competitionId = cleanName
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, "");
+
+    const newCompetition = {
+      id: competitionId,
+      name: cleanName,
+      type: competitionType,
+      status: "upcoming",
+      createdAt: new Date().toISOString(),
+      createdBy: user.uid,
+    };
+
+    await setDoc(
+      doc(db, "competitions", competitionId),
+      newCompetition
+    );
+
+    alert("Competition created successfully!");
+
+    setCompetitionName("");
+    setCompetitionType("worldcup");
+
+    fetchCompetitions();
+  } catch (error) {
+    console.error("Competition Creation Error:", error);
+    alert("Something went wrong while creating competition.");
+  }
+};
+
+const fetchCompetitions = async () => {
+  try {
+    const querySnapshot = await getDocs(
+      collection(db, "competitions")
+    );
+
+    const competitionList = querySnapshot.docs.map(
+      (docItem) => docItem.data()
+    );
+
+    setCompetitions(competitionList);
+  } catch (error) {
+    console.error("Fetch Competitions Error:", error);
+  }
+};
+
+const fetchUsers = async () => {
+  try {
+    const querySnapshot = await getDocs(
+      collection(db, "users")
+    );
+
+    const userList = querySnapshot.docs.map(
+      (docItem) => docItem.data()
+    );
+
+    setUsers(userList);
+  } catch (error) {
+    console.error("Fetch Users Error:", error);
+  }
+};
+
+const updateUserRole = async (targetUserId, newRole) => {
+  try {
+    await updateDoc(doc(db, "users", targetUserId), {
+      role: newRole,
+    });
+
+    alert("User role updated successfully.");
+
+    fetchUsers();
+  } catch (error) {
+    console.error("Role Update Error:", error);
+    alert("Something went wrong while updating role.");
   }
 };
 
@@ -305,12 +512,472 @@ const totalCleanSheets = data.reduce(
   0
 );
 
+const filteredUsers = users.filter((appUser) => {
+  const searchText = userSearch.toLowerCase();
+
+  const matchesSearch =
+    appUser.managerName?.toLowerCase().includes(searchText) ||
+    appUser.fantasyTeamName?.toLowerCase().includes(searchText) ||
+    appUser.email?.toLowerCase().includes(searchText);
+
+  const matchesRole =
+    roleFilter === "all" || appUser.role === roleFilter;
+
+  return matchesSearch && matchesRole;
+});
+
   const cellStyle = {
   padding: "14px",
   textAlign: "center",
   borderBottom:
     "1px solid rgba(255,255,255,0.08)",
 };
+
+if (showAdminPanel && profile?.role === "superadmin") {
+    if (showManageUsers) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          background:
+            "radial-gradient(circle at top, #3a2b00 0%, #050505 60%)",
+          color: "white",
+          padding: "20px",
+          fontFamily: "'Orbitron', sans-serif",
+        }}
+      >
+        <button
+          onClick={() => setShowManageUsers(false)}
+          style={{
+            padding: "10px 16px",
+            borderRadius: "10px",
+            border: "1px solid #FFD700",
+            background: "rgba(255,215,0,0.15)",
+            color: "#FFD700",
+            cursor: "pointer",
+            fontWeight: "bold",
+            marginBottom: "25px",
+          }}
+        >
+          ← Back to Admin Panel
+        </button>
+
+        <h1 style={{ color: "#FFD700" }}>
+          👥 Manage Users
+        </h1>
+
+        <div
+  style={{
+    display: "flex",
+    gap: "10px",
+    flexWrap: "wrap",
+    marginBottom: "20px",
+  }}
+>
+  <input
+    type="text"
+    placeholder="Search manager, team, or email..."
+    value={userSearch}
+    onChange={(e) => setUserSearch(e.target.value)}
+    style={{
+      padding: "12px",
+      borderRadius: "10px",
+      border: "1px solid #FFD700",
+      minWidth: "250px",
+      flex: 1,
+    }}
+  />
+
+  <select
+    value={roleFilter}
+    onChange={(e) => setRoleFilter(e.target.value)}
+    style={{
+      padding: "12px",
+      borderRadius: "10px",
+      border: "1px solid #FFD700",
+    }}
+  >
+    <option value="all">All Roles</option>
+    <option value="superadmin">Super Admin</option>
+    <option value="admin">Admin</option>
+    <option value="player">Player</option>
+  </select>
+</div>
+
+{filteredUsers.map((appUser) => (
+          <div
+            key={appUser.uid}
+            style={{
+              marginTop: "15px",
+              padding: "15px",
+              borderRadius: "15px",
+              background: "rgba(255,255,255,0.05)",
+              border:
+                "1px solid rgba(255,215,0,0.2)",
+            }}
+          >
+            <h3>
+              {appUser.managerName}
+            </h3>
+
+            <p style={{ color: "#bbb" }}>
+              Team: {appUser.fantasyTeamName}
+            </p>
+
+            <p style={{ color: "#FFD700" }}>
+              Role: {appUser.role}
+            </p>
+
+            {appUser.role !== "superadmin" && (
+              <>
+                {appUser.role === "player" ? (
+                  <button
+                    onClick={() =>
+                      updateUserRole(
+                        appUser.uid,
+                        "admin"
+                      )
+                    }
+                  >
+                    Make Admin
+                  </button>
+                ) : (
+                  <button
+                    onClick={() =>
+                      updateUserRole(
+                        appUser.uid,
+                        "player"
+                      )
+                    }
+                  >
+                    Remove Admin
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        background:
+          "radial-gradient(circle at top, #3a2b00 0%, #050505 60%)",
+        color: "white",
+        padding: "20px",
+        fontFamily: "'Orbitron', sans-serif",
+      }}
+    >
+      <button
+        onClick={() => setShowAdminPanel(false)}
+        style={{
+          padding: "10px 16px",
+          borderRadius: "10px",
+          border: "1px solid #FFD700",
+          background: "rgba(255,215,0,0.15)",
+          color: "#FFD700",
+          cursor: "pointer",
+          fontWeight: "bold",
+          marginBottom: "25px",
+        }}
+      >
+        ← Back to Site
+      </button>
+
+      <h1 style={{ color: "#FFD700" }}>
+        👑 Super Admin Panel
+      </h1>
+
+      {selectedCompetition && (
+  <div
+    style={{
+      marginBottom: "30px",
+      padding: "20px",
+      borderRadius: "18px",
+      background: "rgba(255,255,255,0.05)",
+      border: "1px solid rgba(255,215,0,0.2)",
+    }}
+  >
+    <button
+      onClick={() => setSelectedCompetition(null)}
+      style={{
+        padding: "8px 14px",
+        borderRadius: "10px",
+        border: "1px solid #FFD700",
+        background: "rgba(255,215,0,0.12)",
+        color: "#FFD700",
+        cursor: "pointer",
+        fontWeight: "bold",
+        marginBottom: "15px",
+      }}
+    >
+      ← Back to Admin Panel
+    </button>
+
+    <h2 style={{ color: "#FFD700" }}>
+      Managing: {selectedCompetition.name}
+    </h2>
+
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns:
+          window.innerWidth < 768
+            ? "1fr"
+            : "1fr 1fr",
+        gap: "15px",
+        marginTop: "20px",
+      }}
+    >
+      {[
+        "👥 Player Database",
+        "⚽ Matches",
+        "🗳 Polls",
+        "🔄 Transfers",
+        "📊 Leaderboard",
+        "⚙️ Settings",
+      ].map((item) => (
+        <div
+          key={item}
+          style={{
+            padding: "18px",
+            borderRadius: "14px",
+            background: "rgba(255,255,255,0.05)",
+            border: "1px solid rgba(255,215,0,0.15)",
+            color: "#FFD700",
+            fontWeight: "bold",
+          }}
+        >
+          {item}
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
+      <p style={{ color: "#bbb" }}>
+        LilFox Fantasy Engine control center.
+      </p>
+
+      <div
+        style={{
+          marginTop: "30px",
+          display: "grid",
+          gridTemplateColumns:
+            window.innerWidth < 768
+              ? "1fr"
+              : "1fr 1fr",
+          gap: "20px",
+        }}
+      >
+        <div
+  style={{
+    background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,215,0,0.2)",
+    borderRadius: "18px",
+    padding: "20px",
+  }}
+>
+  <h2 style={{ color: "#FFD700" }}>
+    🏆 Competitions
+  </h2>
+
+  <input
+    type="text"
+    placeholder="Competition Name"
+    value={competitionName}
+    onChange={(e) =>
+      setCompetitionName(e.target.value)
+    }
+    style={{
+      width: "90%",
+      padding: "12px",
+      borderRadius: "10px",
+      marginBottom: "12px",
+    }}
+  />
+
+  <select
+    value={competitionType}
+    onChange={(e) =>
+      setCompetitionType(e.target.value)
+    }
+    style={{
+      width: "95%",
+      padding: "12px",
+      borderRadius: "10px",
+      marginBottom: "12px",
+    }}
+  >
+    <option value="worldcup">
+      World Cup Fantasy
+    </option>
+
+    <option value="war">
+      WAR Fantasy
+    </option>
+  </select>
+
+  <button
+    onClick={handleCreateCompetition}
+    style={{
+      padding: "12px 18px",
+      borderRadius: "12px",
+      background: "#FFD700",
+      cursor: "pointer",
+      fontWeight: "bold",
+    }}
+  >
+    + Create Competition
+  </button>
+
+<div
+  style={{
+    marginTop: "20px",
+  }}
+>
+  <h3 style={{ color: "#FFD700" }}>
+    Existing Competitions
+  </h3>
+
+  {competitions.length === 0 ? (
+    <p style={{ color: "#bbb" }}>
+      No competitions created yet.
+    </p>
+  ) : (
+    competitions.map((competition) => (
+      <div
+        key={competition.id}
+        style={{
+          marginTop: "12px",
+          padding: "12px",
+          borderRadius: "12px",
+          background: "rgba(255,255,255,0.05)",
+          border: "1px solid rgba(255,215,0,0.15)",
+        }}
+      >
+        <h4
+          style={{
+            color: "white",
+            margin: "0 0 6px 0",
+          }}
+        >
+          {competition.name}
+        </h4>
+
+        <p
+          style={{
+            color: "#bbb",
+            margin: 0,
+            fontSize: "0.9rem",
+          }}
+        >
+          Type: {competition.type} | Status: {competition.status}
+        </p>
+        <button
+  onClick={() => setSelectedCompetition(competition)}
+  style={{
+    marginTop: "10px",
+    padding: "8px 14px",
+    borderRadius: "10px",
+    border: "1px solid #FFD700",
+    background: "rgba(255,215,0,0.15)",
+    color: "#FFD700",
+    cursor: "pointer",
+    fontWeight: "bold",
+  }}
+>
+  Manage
+</button>
+      </div>
+    ))
+  )}
+</div>
+
+</div>
+
+        <div
+  style={{
+    background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,215,0,0.2)",
+    borderRadius: "18px",
+    padding: "20px",
+  }}
+>
+  <h2 style={{ color: "#FFD700" }}>
+    👥 Users & Admins
+  </h2>
+
+  <p style={{ color: "#bbb" }}>
+    Total Users: {users.length}
+  </p>
+
+  <p style={{ color: "#bbb" }}>
+    Admins: {users.filter((u) => u.role === "admin").length}
+  </p>
+
+  <p style={{ color: "#bbb" }}>
+    Players: {users.filter((u) => u.role === "player").length}
+  </p>
+
+  <button
+    onClick={() => {
+  fetchUsers();
+  setShowManageUsers(true);
+}}
+    style={{
+      marginTop: "10px",
+      padding: "10px 16px",
+      borderRadius: "10px",
+      border: "1px solid #FFD700",
+      background: "rgba(255,215,0,0.15)",
+      color: "#FFD700",
+      cursor: "pointer",
+      fontWeight: "bold",
+    }}
+  >
+    Manage Users
+  </button>
+</div>
+
+        <div
+          style={{
+            background: "rgba(255,255,255,0.05)",
+            border: "1px solid rgba(255,215,0,0.2)",
+            borderRadius: "18px",
+            padding: "20px",
+          }}
+        >
+          <h2 style={{ color: "#FFD700" }}>
+            🗳 Polls
+          </h2>
+          <p style={{ color: "#bbb" }}>
+            Create prediction polls with deadlines.
+          </p>
+        </div>
+
+        <div
+          style={{
+            background: "rgba(255,255,255,0.05)",
+            border: "1px solid rgba(255,215,0,0.2)",
+            borderRadius: "18px",
+            padding: "20px",
+          }}
+        >
+          <h2 style={{ color: "#FFD700" }}>
+            🔄 Transfers
+          </h2>
+          <p style={{ color: "#bbb" }}>
+            Open and close transfer windows.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
   return (
     <div
@@ -379,6 +1046,49 @@ const totalCleanSheets = data.reduce(
   }}
 >
   {user ? (
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: "10px",
+    }}
+  >
+
+    {profile?.role === "superadmin" && (
+  <>
+    <span
+      style={{
+        color: "#FFD700",
+        fontWeight: "bold",
+        border: "1px solid #FFD700",
+        padding: "8px 12px",
+        borderRadius: "10px",
+      }}
+    >
+      👑 SUPER ADMIN
+    </span>
+
+    <button
+      onClick={() => {
+  fetchCompetitions();
+  fetchUsers();
+  setShowAdminPanel(true);
+}}
+      style={{
+        padding: "10px 16px",
+        borderRadius: "10px",
+        border: "1px solid #ff4d4d",
+        background: "rgba(255,0,0,0.15)",
+        color: "#ff4d4d",
+        cursor: "pointer",
+        fontWeight: "bold",
+      }}
+    >
+      Admin Panel
+    </button>
+  </>
+)}
+
     <button
       onClick={handleLogout}
       style={{
@@ -393,7 +1103,9 @@ const totalCleanSheets = data.reduce(
     >
       Logout
     </button>
-  ) : (
+
+  </div>
+) : (
     <button
       onClick={handleGoogleLogin}
       style={{
@@ -410,6 +1122,69 @@ const totalCleanSheets = data.reduce(
     </button>
   )}
 </div>
+
+{/* CREATE MANAGER PROFILE */}
+{creatingProfile && (
+  <div
+    style={{
+      maxWidth: "400px",
+      margin: "20px auto",
+      padding: "25px",
+      background: "rgba(255,255,255,0.06)",
+      borderRadius: "20px",
+      border: "1px solid rgba(255,215,0,0.3)",
+      textAlign: "center",
+    }}
+  >
+    <h2 style={{ color: "#FFD700" }}>
+      Create Manager Profile
+    </h2>
+
+    <input
+      type="text"
+      placeholder="Manager Name"
+      value={managerName}
+      onChange={(e) =>
+        setManagerName(e.target.value)
+      }
+      style={{
+        width: "90%",
+        padding: "12px",
+        marginBottom: "15px",
+        borderRadius: "10px",
+      }}
+    />
+
+    <input
+      type="text"
+      placeholder="Fantasy Team Name"
+      value={fantasyTeamName}
+      onChange={(e) =>
+        setFantasyTeamName(e.target.value)
+      }
+      style={{
+        width: "90%",
+        padding: "12px",
+        marginBottom: "20px",
+        borderRadius: "10px",
+      }}
+    />
+
+    <button
+      onClick={handleCreateProfile}
+      style={{
+        padding: "12px 20px",
+        borderRadius: "12px",
+        background: "#FFD700",
+        fontWeight: "bold",
+        cursor: "pointer",
+      }}
+    >
+      Create Profile
+    </button>
+  </div>
+)}
+
         {/* Header */}
         <div
           style={{
