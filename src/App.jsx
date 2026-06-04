@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Papa from "papaparse";
+import { auth } from "./firebase";
+import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 import {
   createColumnHelper,
   flexRender,
@@ -25,6 +27,7 @@ const csvUrl =
 const columnHelper = createColumnHelper();
 
 function App() {
+  const [user, setUser] = useState(null);
   const [data, setData] = useState([]);
   const [standingsData, setStandingsData] = useState([]);
   const [fixturesData, setFixturesData] = useState([]);
@@ -38,6 +41,24 @@ function App() {
   const particlesInit = async (main) => {
     await loadSlim(main);
   };
+  const handleGoogleLogin = async () => {
+  try {
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    setUser(result.user);
+  } catch (error) {
+    console.error("Login Error:", error);
+  }
+};
+
+const handleLogout = async () => {
+  try {
+    await signOut(auth);
+    setUser(null);
+  } catch (error) {
+    console.error("Logout Error:", error);
+  }
+};
 
   useEffect(() => {
     async function fetchData() {
@@ -349,6 +370,46 @@ const totalCleanSheets = data.reduce(
       />
 
       <div style={{ position: "relative", zIndex: 1 }}>
+      {/* LOGIN AREA */}
+<div
+  style={{
+    display: "flex",
+    justifyContent: "flex-end",
+    marginBottom: "10px",
+  }}
+>
+  {user ? (
+    <button
+      onClick={handleLogout}
+      style={{
+        padding: "10px 16px",
+        borderRadius: "10px",
+        border: "1px solid #FFD700",
+        background: "rgba(255,215,0,0.15)",
+        color: "#FFD700",
+        cursor: "pointer",
+        fontWeight: "bold",
+      }}
+    >
+      Logout
+    </button>
+  ) : (
+    <button
+      onClick={handleGoogleLogin}
+      style={{
+        padding: "10px 16px",
+        borderRadius: "10px",
+        border: "1px solid #FFD700",
+        background: "rgba(255,215,0,0.15)",
+        color: "#FFD700",
+        cursor: "pointer",
+        fontWeight: "bold",
+      }}
+    >
+      Login with Google
+    </button>
+  )}
+</div>
         {/* Header */}
         <div
           style={{
