@@ -7,6 +7,7 @@ import {
   getDoc,
   setDoc,
   updateDoc,
+  writeBatch,
   collection,
   query,
   where,
@@ -47,6 +48,9 @@ const [competitionName, setCompetitionName] = useState("");
 const [competitionType, setCompetitionType] = useState("worldcup");
 const [competitions, setCompetitions] = useState([]);
 const [selectedCompetition, setSelectedCompetition] = useState(null);
+
+const [uploadedPlayers, setUploadedPlayers] = useState([]);
+const [uploadedFixtures, setUploadedFixtures] = useState([]);
 
 const [showManageUsers, setShowManageUsers] = useState(false);
 
@@ -255,6 +259,149 @@ const updateUserRole = async (targetUserId, newRole) => {
   } catch (error) {
     console.error("Role Update Error:", error);
     alert("Something went wrong while updating role.");
+  }
+};
+
+const handlePlayerCsvUpload = (event) => {
+  const file = event.target.files[0];
+
+  if (!file) return;
+
+  Papa.parse(file, {
+    header: true,
+    skipEmptyLines: true,
+    complete: function (results) {
+      const cleanedPlayers = results.data.map((row, index) => {
+        const cleanedRow = {};
+
+        Object.keys(row).forEach((key) => {
+          cleanedRow[key.trim()] = row[key];
+        });
+
+        return {
+          id: `${selectedCompetition.id}-player-${index + 1}`,
+          name: cleanedRow.Player?.trim(),
+          country: cleanedRow.Country?.trim(),
+          position: cleanedRow.Position?.trim()?.toUpperCase(),
+        };
+      });
+
+      setUploadedPlayers(cleanedPlayers);
+    },
+  });
+};
+
+const handleFixtureCsvUpload = (event) => {
+  const file = event.target.files[0];
+
+  if (!file) return;
+
+  Papa.parse(file, {
+    header: true,
+    skipEmptyLines: true,
+
+    complete: function (results) {
+      const cleanedFixtures = results.data.map((row, index) => {
+        const cleanedRow = {};
+
+        Object.keys(row).forEach((key) => {
+          cleanedRow[key.trim()] = row[key];
+        });
+
+        return {
+          id: `${selectedCompetition.id}-fixture-${index + 1}`,
+          matchNo: Number(cleanedRow.MatchNo),
+          round: cleanedRow.Round?.trim(),
+          date: cleanedRow.Date?.trim(),
+          time: cleanedRow.Time?.trim(),
+          teamA: cleanedRow.TeamA?.trim(),
+          teamB: cleanedRow.TeamB?.trim(),
+        };
+      });
+
+      setUploadedFixtures(cleanedFixtures);
+    },
+  });
+};
+
+const handleSavePlayersToDatabase = async () => {
+  if (!selectedCompetition) {
+    alert("No competition selected.");
+    return;
+  }
+
+  if (uploadedPlayers.length === 0) {
+    alert("Please upload players first.");
+    return;
+  }
+
+  try {
+    const batch = writeBatch(db);
+
+    uploadedPlayers.forEach((player) => {
+      const playerRef = doc(
+        db,
+        "competitions",
+        selectedCompetition.id,
+        "players",
+        player.id
+      );
+
+      batch.set(playerRef, {
+        ...player,
+        competitionId: selectedCompetition.id,
+        createdAt: new Date().toISOString(),
+      });
+    });
+
+    await batch.commit();
+
+    alert("Players saved to database successfully!");
+  } catch (error) {
+    console.error("Save Players Error:", error);
+    alert("Something went wrong while saving players.");
+  }
+};
+
+const handleSaveFixturesToDatabase = async () => {
+  if (!selectedCompetition) {
+    alert("No competition selected.");
+    return;
+  }
+
+  if (uploadedFixtures.length === 0) {
+    alert("Please upload fixtures first.");
+    return;
+  }
+
+  try {
+    const batch = writeBatch(db);
+
+    uploadedFixtures.forEach((fixture) => {
+      const fixtureRef = doc(
+        db,
+        "competitions",
+        selectedCompetition.id,
+        "fixtures",
+        fixture.id
+      );
+
+      batch.set(fixtureRef, {
+        ...fixture,
+        competitionId: selectedCompetition.id,
+        status: "upcoming",
+        scoreA: null,
+        scoreB: null,
+        createdAt: new Date().toISOString(),
+      });
+    });
+
+    await batch.commit();
+
+    alert("Fixtures saved to database successfully!");
+  } catch (error) {
+    console.error("Save Fixtures Error:", error);
+    alert("Something went wrong while saving fixtures.");
   }
 };
 
@@ -720,6 +867,149 @@ if (showAdminPanel && profile?.role === "superadmin") {
     <h2 style={{ color: "#FFD700" }}>
       Managing: {selectedCompetition.name}
     </h2>
+
+    <div
+  style={{
+    marginTop: "20px",
+    marginBottom: "25px",
+    padding: "20px",
+    borderRadius: "18px",
+    background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,215,0,0.2)",
+  }}
+>
+  <h2 style={{ color: "#FFD700" }}>
+    👥 Player Database Upload
+  </h2>
+
+  <p style={{ color: "#bbb" }}>
+    Upload CSV with columns: Player, Country, Position
+  </p>
+
+  <input
+    type="file"
+    accept=".csv"
+    onChange={handlePlayerCsvUpload}
+    style={{
+      marginTop: "10px",
+      color: "white",
+    }}
+  />
+
+  {uploadedPlayers.length > 0 && (
+    <div style={{ marginTop: "20px" }}>
+      <h3 style={{ color: "#FFD700" }}>
+        Preview: {uploadedPlayers.length} Players
+      </h3>
+
+      {uploadedPlayers.slice(0, 5).map((player) => (
+        <p
+          key={player.id}
+          style={{
+            color: "#bbb",
+            margin: "6px 0",
+          }}
+        >
+          {player.name} - {player.country} - {player.position}
+        </p>
+      ))}
+
+      {uploadedPlayers.length > 5 && (
+        <p style={{ color: "#888" }}>
+          + {uploadedPlayers.length - 5} more players
+        </p>
+      )}
+
+      <button
+  onClick={handleSavePlayersToDatabase}
+  style={{
+    marginTop: "15px",
+    padding: "12px 18px",
+    borderRadius: "12px",
+    border: "1px solid #FFD700",
+    background: "#FFD700",
+    color: "black",
+    cursor: "pointer",
+    fontWeight: "bold",
+  }}
+>
+  Save Players to Database
+</button>
+
+    </div>
+  )}
+</div>
+
+<div
+  style={{
+    marginTop: "20px",
+    marginBottom: "25px",
+    padding: "20px",
+    borderRadius: "18px",
+    background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,215,0,0.2)",
+  }}
+>
+  <h2 style={{ color: "#FFD700" }}>
+    📅 Fixture Upload
+  </h2>
+
+  <p style={{ color: "#bbb" }}>
+    Upload CSV with columns: MatchNo, Round, Date, Time, TeamA, TeamB
+  </p>
+
+  <input
+    type="file"
+    accept=".csv"
+    onChange={handleFixtureCsvUpload}
+    style={{
+      marginTop: "10px",
+      color: "white",
+    }}
+  />
+
+  {uploadedFixtures.length > 0 && (
+    <div style={{ marginTop: "20px" }}>
+      <h3 style={{ color: "#FFD700" }}>
+        Preview: {uploadedFixtures.length} Fixtures
+      </h3>
+
+      {uploadedFixtures.slice(0, 5).map((fixture) => (
+        <p
+          key={fixture.id}
+          style={{
+            color: "#bbb",
+            margin: "6px 0",
+          }}
+        >
+          Match {fixture.matchNo}: {fixture.teamA} vs {fixture.teamB}
+        </p>
+      ))}
+
+      {uploadedFixtures.length > 5 && (
+        <p style={{ color: "#888" }}>
+          + {uploadedFixtures.length - 5} more fixtures
+        </p>
+      )}
+
+      <button
+        onClick={handleSaveFixturesToDatabase}
+        style={{
+          marginTop: "15px",
+          padding: "12px 18px",
+          borderRadius: "12px",
+          border: "1px solid #FFD700",
+          background: "#FFD700",
+          color: "black",
+          cursor: "pointer",
+          fontWeight: "bold",
+        }}
+      >
+        Save Fixtures to Database
+      </button>
+    </div>
+  )}
+</div>
 
     <div
       style={{
