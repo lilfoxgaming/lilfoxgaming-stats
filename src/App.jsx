@@ -58,6 +58,8 @@ const [selectedFantasyPlayers, setSelectedFantasyPlayers] = useState([]);
 
 const [fantasyPositionFilter, setFantasyPositionFilter] = useState("ALL");
 
+const [teamCreationDeadline, setTeamCreationDeadline] = useState("");
+
 const [showManageUsers, setShowManageUsers] = useState(false);
 
 const [userSearch, setUserSearch] = useState("");
@@ -429,7 +431,32 @@ const handleLoadFantasyPlayers = async () => {
 
     setFantasyPlayers(playersList);
 
-    alert("Players loaded successfully!");
+
+// Load deadline
+
+const competitionDoc = await getDoc(
+  doc(
+    db,
+    "competitions",
+    "fifa-world-cup-2026-fantasy-game"
+  )
+);
+
+if (competitionDoc.exists()) {
+
+  const settings =
+    competitionDoc.data().fantasySettings;
+
+  if (settings?.teamCreationDeadline) {
+    setTeamCreationDeadline(
+      settings.teamCreationDeadline
+    );
+  }
+
+}
+
+
+alert("Players loaded successfully!");
   } catch (error) {
     console.error("Load Fantasy Players Error:", error);
     alert("Something went wrong while loading players.");
@@ -455,11 +482,72 @@ const handleToggleFantasyPlayer = (player) => {
   }
 };
 
+const handleSaveFantasyDeadline = async () => {
+  if (!selectedCompetition) {
+    alert("No competition selected.");
+    return;
+  }
+
+  if (!teamCreationDeadline) {
+    alert("Please select deadline.");
+    return;
+  }
+
+  try {
+    await setDoc(
+      doc(
+        db,
+        "competitions",
+        selectedCompetition.id
+      ),
+      {
+        fantasySettings: {
+          teamCreationDeadline:
+            teamCreationDeadline,
+        },
+      },
+      { merge: true }
+    );
+
+    alert("Fantasy deadline saved successfully!");
+
+  } catch (error) {
+
+    console.error(
+      "Save Deadline Error:",
+      error
+    );
+
+    alert(
+      "Something went wrong while saving deadline."
+    );
+  }
+};
+
 const handleSaveFantasyTeam = async () => {
   if (!user || !profile) {
     alert("Please login first.");
     return;
   }
+
+  if (teamCreationDeadline) {
+
+  const now = new Date();
+
+  const deadline =
+    new Date(teamCreationDeadline);
+
+
+  if (now > deadline) {
+
+    alert(
+      "Team creation deadline is over."
+    );
+
+    return;
+  }
+
+}
 
   if (selectedFantasyPlayers.length !== 15) {
   alert("Please select exactly 15 players.");
@@ -873,6 +961,44 @@ if (showFantasyPage) {
       <p style={{ color: "#bbb" }}>
         Build your 15 player dream squad.
       </p>
+
+      {teamCreationDeadline && (
+  <div
+    style={{
+      marginTop: "15px",
+      marginBottom: "20px",
+      padding: "15px",
+      borderRadius: "15px",
+      background: "rgba(255,215,0,0.08)",
+      border: "1px solid rgba(255,215,0,0.25)",
+    }}
+  >
+    <h3 style={{ color: "#FFD700" }}>
+      ⏳ Team Creation Deadline
+    </h3>
+
+    <p style={{ color: "#ddd" }}>
+      {new Date(
+        teamCreationDeadline
+      ).toLocaleString()}
+    </p>
+
+    <h3
+      style={{
+        color:
+          new Date() >
+          new Date(teamCreationDeadline)
+            ? "#ff5555"
+            : "#55ff88",
+      }}
+    >
+      {new Date() >
+      new Date(teamCreationDeadline)
+        ? "🔒 Team Creation Closed"
+        : "🟢 Team Creation Open"}
+    </h3>
+  </div>
+)}
 
       <button
         onClick={handleLoadFantasyPlayers}
@@ -1347,6 +1473,56 @@ if (showAdminPanel && profile?.role === "superadmin") {
       </button>
     </div>
   )}
+</div>
+
+<div
+  style={{
+    marginTop: "20px",
+    marginBottom: "25px",
+    padding: "20px",
+    borderRadius: "18px",
+    background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,215,0,0.2)",
+  }}
+>
+  <h2 style={{ color: "#FFD700" }}>
+    ⚙️ Fantasy Settings
+  </h2>
+
+  <p style={{ color: "#bbb" }}>
+    Set fantasy team creation deadline
+  </p>
+
+  <input
+    type="datetime-local"
+    value={teamCreationDeadline}
+    onChange={(e) =>
+      setTeamCreationDeadline(e.target.value)
+    }
+    style={{
+      padding: "10px",
+      borderRadius: "10px",
+      marginTop: "10px",
+    }}
+  />
+
+  <br />
+
+  <button
+    onClick={handleSaveFantasyDeadline}
+    style={{
+      marginTop: "15px",
+      padding: "12px 18px",
+      borderRadius: "12px",
+      border: "1px solid #FFD700",
+      background: "#FFD700",
+      color: "black",
+      cursor: "pointer",
+      fontWeight: "bold",
+    }}
+  >
+    Save Deadline
+  </button>
 </div>
 
     <div
