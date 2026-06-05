@@ -56,6 +56,8 @@ const [uploadedFixtures, setUploadedFixtures] = useState([]);
 const [fantasyPlayers, setFantasyPlayers] = useState([]);
 const [selectedFantasyPlayers, setSelectedFantasyPlayers] = useState([]);
 
+const [savedFantasyTeam, setSavedFantasyTeam] = useState(null);
+
 const [fantasyPositionFilter, setFantasyPositionFilter] = useState("ALL");
 
 const [fantasyCountryFilter, setFantasyCountryFilter] = useState("ALL");
@@ -412,6 +414,42 @@ const handleSaveFixturesToDatabase = async () => {
   } catch (error) {
     console.error("Save Fixtures Error:", error);
     alert("Something went wrong while saving fixtures.");
+  }
+};
+
+const handleLoadSavedFantasyTeam = async () => {
+  if (!user) {
+    return;
+  }
+
+  try {
+    const teamDoc = await getDoc(
+      doc(
+        db,
+        "competitions",
+        "fifa-world-cup-2026-fantasy-game",
+        "fantasyTeams",
+        user.uid
+      )
+    );
+
+    if (teamDoc.exists()) {
+      const teamData = teamDoc.data();
+
+      setSavedFantasyTeam(teamData);
+
+      setSelectedFantasyPlayers(
+        teamData.players || []
+      );
+    }
+
+  } catch (error) {
+
+    console.error(
+      "Load Fantasy Team Error:",
+      error
+    );
+
   }
 };
 
@@ -1017,6 +1055,65 @@ if (showFantasyPage) {
         ? "🔒 Team Creation Closed"
         : "🟢 Team Creation Open"}
     </h3>
+  </div>
+)}
+
+{savedFantasyTeam && (
+  <div
+    style={{
+      marginTop: "20px",
+      marginBottom: "25px",
+      padding: "20px",
+      borderRadius: "18px",
+      background: "rgba(255,255,255,0.05)",
+      border: "1px solid rgba(255,215,0,0.2)",
+    }}
+  >
+    <h2 style={{ color: "#FFD700" }}>
+      🏆 My Fantasy Team
+    </h2>
+
+    <p style={{ color: "#bbb" }}>
+      Manager: {savedFantasyTeam.managerName}
+    </p>
+
+    <p style={{ color: "#bbb" }}>
+      Team: {savedFantasyTeam.fantasyTeamName}
+    </p>
+
+    {["GK", "DEF", "MID", "FWD"].map(
+      (position) => (
+        <div
+          key={position}
+          style={{ marginTop: "15px" }}
+        >
+          <h3 style={{ color: "#FFD700" }}>
+            {position === "GK" &&
+              "🧤 Goalkeepers"}
+            {position === "DEF" &&
+              "🛡 Defenders"}
+            {position === "MID" &&
+              "🎯 Midfielders"}
+            {position === "FWD" &&
+              "⚡ Forwards"}
+          </h3>
+
+          {(savedFantasyTeam.players || [])
+            .filter(
+              (player) =>
+                player.position === position
+            )
+            .map((player) => (
+              <p
+                key={player.id}
+                style={{ color: "#bbb" }}
+              >
+                ✅ {player.name}
+              </p>
+            ))}
+        </div>
+      )
+    )}
   </div>
 )}
 
@@ -2355,6 +2452,7 @@ whiteSpace: "nowrap",
   whileHover={{ scale: 1.02 }}
   onClick={() => {
   if (user) {
+    handleLoadSavedFantasyTeam();
     setShowFantasyPage(true);
   } else {
     alert("Please login to participate in Fantasy.");
