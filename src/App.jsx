@@ -1120,6 +1120,42 @@ if (showFantasyPage) {
         MID {selectedPositionCounts.MID}/3 min |
         FWD {selectedPositionCounts.FWD}/3 min
       </p>
+
+{["GK", "DEF", "MID", "FWD"].map(
+  (position) => (
+    <div
+      key={position}
+      style={{
+        marginTop: "15px",
+      }}
+    >
+      <h3 style={{ color: "#FFD700" }}>
+        {position === "GK" && "🧤 Goalkeepers"}
+        {position === "DEF" && "🛡 Defenders"}
+        {position === "MID" && "🎯 Midfielders"}
+        {position === "FWD" && "⚡ Forwards"}
+      </h3>
+
+      {selectedFantasyPlayers
+        .filter(
+          (player) =>
+            player.position === position
+        )
+        .map((player) => (
+          <p
+            key={player.id}
+            style={{
+              color: "#bbb",
+              marginLeft: "10px",
+            }}
+          >
+            ✅ {player.name}
+          </p>
+        ))}
+    </div>
+  )
+)}
+
     </div>
 
 
