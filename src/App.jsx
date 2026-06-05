@@ -58,6 +58,8 @@ const [selectedFantasyPlayers, setSelectedFantasyPlayers] = useState([]);
 
 const [fantasyPositionFilter, setFantasyPositionFilter] = useState("ALL");
 
+const [fantasyCountryFilter, setFantasyCountryFilter] = useState("ALL");
+
 const [teamCreationDeadline, setTeamCreationDeadline] = useState("");
 
 const [showManageUsers, setShowManageUsers] = useState(false);
@@ -899,12 +901,30 @@ const selectedPositionCounts = {
 };
 
 const visibleFantasyPlayers =
-  fantasyPositionFilter === "ALL"
-    ? fantasyPlayers
-    : fantasyPlayers.filter(
-        (player) =>
-          player.position === fantasyPositionFilter
-      );
+  fantasyPlayers.filter((player) => {
+
+    const positionMatch =
+      fantasyPositionFilter === "ALL" ||
+      player.position === fantasyPositionFilter;
+
+
+    const countryMatch =
+      fantasyCountryFilter === "ALL" ||
+      player.country === fantasyCountryFilter;
+
+
+    return positionMatch && countryMatch;
+
+  });
+
+  const fantasyCountries = [
+  "ALL",
+  ...new Set(
+    fantasyPlayers
+      .map((player) => player.country)
+      .filter(Boolean)
+  ),
+];
 
 const filteredUsers = users.filter((appUser) => {
   const searchText = userSearch.toLowerCase();
@@ -1021,6 +1041,37 @@ if (showFantasyPage) {
       Select Your Squad
     </h2>
 
+<div style={{ marginBottom: "20px" }}>
+  <label
+    style={{
+      color: "#FFD700",
+      fontWeight: "bold",
+      display: "block",
+      marginBottom: "8px",
+    }}
+  >
+    🌍 Filter by Country
+  </label>
+
+  <select
+    value={fantasyCountryFilter}
+    onChange={(e) =>
+      setFantasyCountryFilter(e.target.value)
+    }
+    style={{
+      padding: "10px",
+      borderRadius: "10px",
+      width: "100%",
+      maxWidth: "320px",
+    }}
+  >
+    {fantasyCountries.map((country) => (
+      <option key={country} value={country}>
+        {country === "ALL" ? "All Countries" : country}
+      </option>
+    ))}
+  </select>
+</div>
 
     <div
       style={{
