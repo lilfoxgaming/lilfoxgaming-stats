@@ -52,6 +52,11 @@ const [selectedCompetition, setSelectedCompetition] = useState(null);
 const [uploadedPlayers, setUploadedPlayers] = useState([]);
 const [uploadedFixtures, setUploadedFixtures] = useState([]);
 
+const [fantasyPlayers, setFantasyPlayers] = useState([]);
+const [selectedFantasyPlayers, setSelectedFantasyPlayers] = useState([]);
+
+const [fantasyPositionFilter, setFantasyPositionFilter] = useState("ALL");
+
 const [showManageUsers, setShowManageUsers] = useState(false);
 
 const [userSearch, setUserSearch] = useState("");
@@ -405,6 +410,142 @@ const handleSaveFixturesToDatabase = async () => {
   }
 };
 
+const handleLoadFantasyPlayers = async () => {
+  if (!selectedCompetition) {
+    alert("No competition selected.");
+    return;
+  }
+
+  try {
+    const querySnapshot = await getDocs(
+      collection(
+        db,
+        "competitions",
+        selectedCompetition.id,
+        "players"
+      )
+    );
+
+    const playersList = querySnapshot.docs.map((docItem) =>
+      docItem.data()
+    );
+
+    setFantasyPlayers(playersList);
+
+    alert("Players loaded successfully!");
+  } catch (error) {
+    console.error("Load Fantasy Players Error:", error);
+    alert("Something went wrong while loading players.");
+  }
+};
+
+const handleToggleFantasyPlayer = (player) => {
+  const alreadySelected = selectedFantasyPlayers.some(
+    (selectedPlayer) => selectedPlayer.id === player.id
+  );
+
+  if (alreadySelected) {
+    const updatedPlayers = selectedFantasyPlayers.filter(
+      (selectedPlayer) => selectedPlayer.id !== player.id
+    );
+
+    setSelectedFantasyPlayers(updatedPlayers);
+  } else {
+    setSelectedFantasyPlayers([
+      ...selectedFantasyPlayers,
+      player,
+    ]);
+  }
+};
+
+const handleSaveFantasyTeam = async () => {
+  if (!user || !profile) {
+    alert("Please login first.");
+    return;
+  }
+
+  if (!selectedCompetition) {
+    alert("No competition selected.");
+    return;
+  }
+
+  if (selectedFantasyPlayers.length !== 15) {
+  alert("Please select exactly 15 players.");
+  return;
+}
+
+const gkCount = selectedFantasyPlayers.filter(
+  (player) => player.position === "GK"
+).length;
+
+const defCount = selectedFantasyPlayers.filter(
+  (player) => player.position === "DEF"
+).length;
+
+const midCount = selectedFantasyPlayers.filter(
+  (player) => player.position === "MID"
+).length;
+
+const fwdCount = selectedFantasyPlayers.filter(
+  (player) => player.position === "FWD"
+).length;
+
+if (gkCount < 2) {
+  alert("Please select minimum 2 Goalkeepers.");
+  return;
+}
+
+if (defCount < 3) {
+  alert("Please select minimum 3 Defenders.");
+  return;
+}
+
+if (midCount < 3) {
+  alert("Please select minimum 3 Midfielders.");
+  return;
+}
+
+if (fwdCount < 3) {
+  alert("Please select minimum 3 Forwards.");
+  return;
+}
+
+  try {
+    await setDoc(
+      doc(
+        db,
+        "competitions",
+        selectedCompetition.id,
+        "fantasyTeams",
+        user.uid
+      ),
+      {
+        userId: user.uid,
+
+        managerName: profile.managerName,
+        fantasyTeamName: profile.fantasyTeamName,
+
+        players: selectedFantasyPlayers,
+
+        totalPoints: 0,
+
+        createdAt: new Date().toISOString(),
+      }
+    );
+
+    alert("Fantasy Team created successfully!");
+  } catch (error) {
+    console.error(
+      "Save Fantasy Team Error:",
+      error
+    );
+
+    alert(
+      "Something went wrong while saving fantasy team."
+    );
+  }
+};
+
 const handleLogout = async () => {
   try {
     await signOut(auth);
@@ -658,6 +799,32 @@ const totalCleanSheets = data.reduce(
   (sum, player) => sum + (Number(player.CS) || 0),
   0
 );
+
+const selectedPositionCounts = {
+  GK: selectedFantasyPlayers.filter(
+    (player) => player.position === "GK"
+  ).length,
+
+  DEF: selectedFantasyPlayers.filter(
+    (player) => player.position === "DEF"
+  ).length,
+
+  MID: selectedFantasyPlayers.filter(
+    (player) => player.position === "MID"
+  ).length,
+
+  FWD: selectedFantasyPlayers.filter(
+    (player) => player.position === "FWD"
+  ).length,
+};
+
+const visibleFantasyPlayers =
+  fantasyPositionFilter === "ALL"
+    ? fantasyPlayers
+    : fantasyPlayers.filter(
+        (player) =>
+          player.position === fantasyPositionFilter
+      );
 
 const filteredUsers = users.filter((appUser) => {
   const searchText = userSearch.toLowerCase();
@@ -1006,6 +1173,166 @@ if (showAdminPanel && profile?.role === "superadmin") {
         }}
       >
         Save Fixtures to Database
+      </button>
+    </div>
+  )}
+</div>
+
+<div
+  style={{
+    marginTop: "20px",
+    marginBottom: "25px",
+    padding: "20px",
+    borderRadius: "18px",
+    background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,215,0,0.2)",
+  }}
+>
+  <h2 style={{ color: "#FFD700" }}>
+    ⚽ Fantasy Team Creation Test
+  </h2>
+
+  <p style={{ color: "#bbb" }}>
+    Load players and select your fantasy squad.
+  </p>
+
+  <button
+    onClick={handleLoadFantasyPlayers}
+    style={{
+      padding: "12px 18px",
+      borderRadius: "12px",
+      border: "1px solid #FFD700",
+      background: "rgba(255,215,0,0.15)",
+      color: "#FFD700",
+      cursor: "pointer",
+      fontWeight: "bold",
+    }}
+  >
+    Load Players
+  </button>
+
+  {fantasyPlayers.length > 0 && (
+    <div style={{ marginTop: "20px" }}>
+      <h3 style={{ color: "#FFD700" }}>
+        Available Players
+      </h3>
+
+      <div
+  style={{
+    display: "flex",
+    gap: "10px",
+    flexWrap: "wrap",
+    marginBottom: "15px",
+  }}
+>
+  {["ALL", "GK", "DEF", "MID", "FWD"].map(
+    (position) => (
+      <button
+        key={position}
+        onClick={() =>
+          setFantasyPositionFilter(position)
+        }
+        style={{
+          padding: "8px 14px",
+          borderRadius: "10px",
+          border:
+            fantasyPositionFilter === position
+              ? "2px solid #FFD700"
+              : "1px solid #555",
+
+          background:
+            fantasyPositionFilter === position
+              ? "rgba(255,215,0,0.2)"
+              : "rgba(255,255,255,0.05)",
+
+          color:
+            fantasyPositionFilter === position
+              ? "#FFD700"
+              : "white",
+
+          cursor: "pointer",
+          fontWeight: "bold",
+        }}
+      >
+        {position}
+      </button>
+    )
+  )}
+</div>
+
+      {visibleFantasyPlayers.map((player) => {
+        const isSelected =
+          selectedFantasyPlayers.some(
+            (selectedPlayer) =>
+              selectedPlayer.id === player.id
+          );
+
+        return (
+          <div
+            key={player.id}
+            onClick={() =>
+              handleToggleFantasyPlayer(player)
+            }
+            style={{
+              marginTop: "10px",
+              padding: "12px",
+              borderRadius: "12px",
+              background: isSelected
+                ? "rgba(255,215,0,0.2)"
+                : "rgba(255,255,255,0.05)",
+              border: isSelected
+                ? "1px solid #FFD700"
+                : "1px solid rgba(255,255,255,0.15)",
+              cursor: "pointer",
+            }}
+          >
+            <strong>{player.name}</strong>
+            <span style={{ color: "#bbb" }}>
+              {" "}
+              - {player.country} - {player.position}
+            </span>
+          </div>
+        );
+      })}
+
+      <div
+  style={{
+    marginTop: "20px",
+    padding: "12px",
+    borderRadius: "12px",
+    background: "rgba(255,215,0,0.08)",
+    border: "1px solid rgba(255,215,0,0.25)",
+  }}
+>
+  <h3 style={{ color: "#FFD700", margin: 0 }}>
+    Squad: {selectedFantasyPlayers.length}/15
+  </h3>
+
+  <p style={{ color: "#bbb", marginBottom: 0 }}>
+    GK: {selectedPositionCounts.GK}/2 min | DEF: {selectedPositionCounts.DEF}/3 min | MID: {selectedPositionCounts.MID}/3 min | FWD: {selectedPositionCounts.FWD}/3 min
+  </p>
+</div>
+
+      {selectedFantasyPlayers.map((player) => (
+        <p key={player.id} style={{ color: "#bbb" }}>
+          ✅ {player.name} - {player.position}
+        </p>
+      ))}
+
+      <button
+        onClick={handleSaveFantasyTeam}
+        style={{
+          marginTop: "15px",
+          padding: "12px 18px",
+          borderRadius: "12px",
+          border: "1px solid #FFD700",
+          background: "#FFD700",
+          color: "black",
+          cursor: "pointer",
+          fontWeight: "bold",
+        }}
+      >
+        Save Fantasy Team
       </button>
     </div>
   )}
