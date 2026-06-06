@@ -58,6 +58,8 @@ const [selectedFantasyPlayers, setSelectedFantasyPlayers] = useState([]);
 
 const [savedFantasyTeam, setSavedFantasyTeam] = useState(null);
 const [isEditingFantasyTeam, setIsEditingFantasyTeam] = useState(false);
+const [captainId, setCaptainId] = useState("");
+const [viceCaptainId, setViceCaptainId] = useState("");
 
 const [fantasyPositionFilter, setFantasyPositionFilter] = useState("ALL");
 
@@ -633,6 +635,25 @@ if (fwdCount < 3) {
   return;
 }
 
+if (!captainId) {
+  alert("Please select a Captain.");
+  return;
+}
+
+
+if (!viceCaptainId) {
+  alert("Please select a Vice Captain.");
+  return;
+}
+
+
+if (captainId === viceCaptainId) {
+  alert(
+    "Captain and Vice Captain cannot be same player."
+  );
+  return;
+}
+
   try {
     await setDoc(
       doc(
@@ -649,6 +670,8 @@ if (fwdCount < 3) {
         fantasyTeamName: profile.fantasyTeamName,
 
         players: selectedFantasyPlayers,
+        captainId: captainId,
+        viceCaptainId: viceCaptainId,
 
         totalPoints: 0,
 
@@ -661,6 +684,8 @@ if (fwdCount < 3) {
   managerName: profile.managerName,
   fantasyTeamName: profile.fantasyTeamName,
   players: selectedFantasyPlayers,
+  captainId: captainId,
+  viceCaptainId: viceCaptainId,
 });
 
 setIsEditingFantasyTeam(false);
@@ -1118,7 +1143,19 @@ if (showFantasyPage) {
                 key={player.id}
                 style={{ color: "#bbb" }}
               >
-                ✅ {player.name}
+                {savedFantasyTeam.captainId === player.id
+  ? "⭐ "
+  : savedFantasyTeam.viceCaptainId === player.id
+  ? "💫 "
+  : "✅ "}
+
+{player.name}
+
+{savedFantasyTeam.captainId === player.id
+  ? " (C)"
+  : savedFantasyTeam.viceCaptainId === player.id
+  ? " (VC)"
+  : ""}
               </p>
             ))}
         </div>
@@ -1351,6 +1388,86 @@ new Date() < new Date(teamCreationDeadline) ? (
         ))}
     </div>
   )
+)}
+
+{selectedFantasyPlayers.length > 0 && (
+  <div
+    style={{
+      marginTop: "20px",
+      padding: "15px",
+      borderRadius: "12px",
+      background: "rgba(255,215,0,0.08)",
+    }}
+  >
+    <h3 style={{ color: "#FFD700" }}>
+      ⭐ Select Captain
+    </h3>
+
+    <select
+      value={captainId}
+      onChange={(e) =>
+        setCaptainId(e.target.value)
+      }
+      style={{
+        padding: "10px",
+        borderRadius: "10px",
+        width: "100%",
+      }}
+    >
+      <option value="">
+        Select Captain
+      </option>
+
+      {selectedFantasyPlayers.map(
+        (player) => (
+          <option
+            key={player.id}
+            value={player.id}
+          >
+            {player.name}
+          </option>
+        )
+      )}
+    </select>
+
+
+    <h3
+      style={{
+        color: "#FFD700",
+        marginTop: "20px",
+      }}
+    >
+      💫 Select Vice Captain
+    </h3>
+
+    <select
+      value={viceCaptainId}
+      onChange={(e) =>
+        setViceCaptainId(e.target.value)
+      }
+      style={{
+        padding: "10px",
+        borderRadius: "10px",
+        width: "100%",
+      }}
+    >
+      <option value="">
+        Select Vice Captain
+      </option>
+
+      {selectedFantasyPlayers.map(
+        (player) => (
+          <option
+            key={player.id}
+            value={player.id}
+          >
+            {player.name}
+          </option>
+        )
+      )}
+    </select>
+
+  </div>
 )}
 
     </div>
