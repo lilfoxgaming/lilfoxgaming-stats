@@ -57,6 +57,7 @@ const [fantasyPlayers, setFantasyPlayers] = useState([]);
 const [selectedFantasyPlayers, setSelectedFantasyPlayers] = useState([]);
 
 const [savedFantasyTeam, setSavedFantasyTeam] = useState(null);
+const [isEditingFantasyTeam, setIsEditingFantasyTeam] = useState(false);
 
 const [fantasyPositionFilter, setFantasyPositionFilter] = useState("ALL");
 
@@ -443,6 +444,8 @@ const handleLoadSavedFantasyTeam = async () => {
       );
     }
 
+    await handleLoadFantasyPlayers();
+
   } catch (error) {
 
     console.error(
@@ -654,6 +657,13 @@ if (fwdCount < 3) {
     );
 
     alert("Fantasy Team created successfully!");
+    setSavedFantasyTeam({
+  managerName: profile.managerName,
+  fantasyTeamName: profile.fantasyTeamName,
+  players: selectedFantasyPlayers,
+});
+
+setIsEditingFantasyTeam(false);
   } catch (error) {
     console.error(
       "Save Fantasy Team Error:",
@@ -1114,9 +1124,46 @@ if (showFantasyPage) {
         </div>
       )
     )}
+
+{teamCreationDeadline &&
+new Date() < new Date(teamCreationDeadline) ? (
+
+  <button
+    onClick={() => {
+      setIsEditingFantasyTeam(true);
+      handleLoadFantasyPlayers();
+    }}
+    style={{
+      marginTop: "20px",
+      padding: "12px 20px",
+      borderRadius: "12px",
+      background: "#FFD700",
+      color: "black",
+      fontWeight: "bold",
+      cursor: "pointer",
+    }}
+  >
+    ✏️ Edit Team
+  </button>
+
+) : (
+
+  <p
+    style={{
+      marginTop: "20px",
+      color: "#ff7777",
+      fontWeight: "bold",
+    }}
+  >
+    🔒 Team Locked
+  </p>
+
+)}
+
   </div>
 )}
 
+      {!savedFantasyTeam && (
       <button
         onClick={handleLoadFantasyPlayers}
         style={{
@@ -1130,8 +1177,10 @@ if (showFantasyPage) {
       >
         Load Players
       </button>
+      )}
 
-{fantasyPlayers.length > 0 && (
+{fantasyPlayers.length > 0 &&
+(!savedFantasyTeam || isEditingFantasyTeam) && (
   <div style={{ marginTop: "25px" }}>
 
     <h2 style={{ color: "#FFD700" }}>
