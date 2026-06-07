@@ -682,6 +682,100 @@ const handlePerformanceCsvUpload = (event) => {
   });
 };
 
+const updateFantasyTeamPoints = async () => {
+  try {
+    const scoresSnapshot = await getDocs(
+      collection(
+        db,
+        "competitions",
+        selectedCompetition.id,
+        "playerScores"
+      )
+    );
+
+
+    const scores = {};
+
+    scoresSnapshot.docs.forEach((doc) => {
+      const data = doc.data();
+
+      scores[data.playerId] =
+        data.totalPoints || 0;
+    });
+
+
+    const teamsSnapshot = await getDocs(
+      collection(
+        db,
+        "competitions",
+        selectedCompetition.id,
+        "fantasyTeams"
+      )
+    );
+
+
+    const batch = writeBatch(db);
+
+
+    teamsSnapshot.docs.forEach((teamDoc) => {
+      const team = teamDoc.data();
+
+      let total = 0;
+
+
+      (team.players || []).forEach(
+        (player) => {
+
+          let points =
+            scores[player.id] || 0;
+
+
+          if (
+            player.id === team.captainId
+          ) {
+            points = points * 2;
+          }
+
+
+          if (
+            player.id ===
+            team.viceCaptainId
+          ) {
+            points = points * 1.5;
+          }
+
+
+          total += points;
+
+        }
+      );
+
+
+      batch.update(
+        teamDoc.ref,
+        {
+          totalPoints: total,
+          lastUpdated:
+            new Date().toISOString(),
+        }
+      );
+
+    });
+
+
+    await batch.commit();
+
+
+  } catch (error) {
+
+    console.error(
+      "Fantasy points update error:",
+      error
+    );
+
+  }
+};
+
 const handleSavePerformance = async () => {
   if (!selectedCompetition) {
     alert("No competition selected.");
@@ -695,34 +789,90 @@ const handleSavePerformance = async () => {
 
   try {
 
+    const playersSnapshot = await getDocs(
+      collection(
+        db,
+        "competitions",
+        selectedCompetition.id,
+        "players"
+      )
+    );
+
+
+    const allPlayers =
+      playersSnapshot.docs.map((doc) =>
+        doc.data()
+      );
+
+
     const batch = writeBatch(db);
 
 
     performanceData.forEach((record) => {
+  const matchedPlayer = allPlayers.find(
+    (player) =>
+      player.name?.toLowerCase() ===
+      record.player?.toLowerCase()
+  );
 
-      const performanceRef = doc(
-        db,
-        "competitions",
-        selectedCompetition.id,
-        "matchPerformance",
-        `${record.matchNo}_${record.player}`
-      );
-
-
-      batch.set(
-        performanceRef,
-        record
-      );
-
-    });
-
-
-    await batch.commit();
-
-
-    alert(
-      "Performance saved successfully!"
+  if (!matchedPlayer) {
+    console.warn(
+      "Player not found:",
+      record.player
     );
+    return;
+  }
+
+  const points = calculatePlayerPoints(
+    matchedPlayer,
+    record
+  );
+
+  const performanceRef = doc(
+    db,
+    "competitions",
+    selectedCompetition.id,
+    "matchPerformance",
+    `${record.matchNo}_${record.player}`
+  );
+
+  batch.set(performanceRef, {
+    ...record,
+    playerId: matchedPlayer.id,
+    position: matchedPlayer.position,
+    points,
+  });
+
+  const playerScoreRef = doc(
+    db,
+    "competitions",
+    selectedCompetition.id,
+    "playerScores",
+    matchedPlayer.id
+  );
+
+  batch.set(
+    playerScoreRef,
+    {
+      playerId: matchedPlayer.id,
+      playerName: matchedPlayer.name,
+      country: matchedPlayer.country,
+      position: matchedPlayer.position,
+      totalPoints: points,
+      lastUpdated: new Date().toISOString(),
+    },
+    { merge: true }
+  );
+});
+
+
+    setTimeout(() => {
+  updateFantasyTeamPoints();
+}, 1000);
+
+alert(
+  "Performance saved successfully and fantasy points updated!"
+);
 
 
   } catch (error) {
