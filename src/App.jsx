@@ -58,6 +58,8 @@ const [selectedFantasyPlayers, setSelectedFantasyPlayers] = useState([]);
 
 const [savedFantasyTeam, setSavedFantasyTeam] = useState(null);
 const [isEditingFantasyTeam, setIsEditingFantasyTeam] = useState(false);
+const [fantasyLeaderboard, setFantasyLeaderboard] = useState([]);
+const [leaderboardLoading, setLeaderboardLoading] = useState(false);
 const [captainId, setCaptainId] = useState("");
 const [viceCaptainId, setViceCaptainId] = useState("");
 
@@ -765,8 +767,10 @@ const updateFantasyTeamPoints = async () => {
 
     await batch.commit();
 
+await loadFantasyLeaderboard();
 
-  } catch (error) {
+
+} catch (error) {
 
     console.error(
       "Fantasy points update error:",
@@ -774,6 +778,52 @@ const updateFantasyTeamPoints = async () => {
     );
 
   }
+};
+
+const loadFantasyLeaderboard = async () => {
+
+  setLeaderboardLoading(true);
+
+  try {
+
+    const snapshot = await getDocs(
+      collection(
+        db,
+        "competitions",
+        "fifa-world-cup-2026-fantasy-game",
+        "fantasyTeams"
+      )
+    );
+
+
+    const teams = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+
+    teams.sort(
+      (a, b) =>
+        (b.totalPoints || 0) -
+        (a.totalPoints || 0)
+    );
+
+
+    setFantasyLeaderboard(teams);
+
+
+  } catch (error) {
+
+    console.error(
+      "Leaderboard Error:",
+      error
+    );
+
+  }
+
+
+  setLeaderboardLoading(false);
+
 };
 
 const handleSavePerformance = async () => {
@@ -1374,6 +1424,73 @@ if (showFantasyPage) {
       <p style={{ color: "#bbb" }}>
         Build your 15 player dream squad.
       </p>
+
+      <div
+  style={{
+    marginTop: "20px",
+    padding: "20px",
+    borderRadius: "18px",
+    background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,215,0,0.2)",
+  }}
+>
+
+<h2 style={{ color: "#FFD700" }}>
+🏆 Fantasy Leaderboard
+</h2>
+
+
+<button
+onClick={loadFantasyLeaderboard}
+style={{
+padding:"10px 16px",
+borderRadius:"10px",
+background:"#FFD700",
+fontWeight:"bold",
+cursor:"pointer"
+}}
+>
+Refresh Leaderboard
+</button>
+
+
+{leaderboardLoading && (
+<p>Loading...</p>
+)}
+
+
+{fantasyLeaderboard.map(
+(team,index)=>(
+<div
+key={team.id}
+style={{
+marginTop:"12px",
+padding:"12px",
+borderRadius:"12px",
+background:
+index===0
+?"rgba(255,215,0,0.20)"
+:"rgba(255,255,255,0.05)"
+}}
+>
+
+<h3>
+#{index+1} 🏆 {team.fantasyTeamName}
+</h3>
+
+<p>
+Manager: {team.managerName}
+</p>
+
+<h2 style={{color:"#FFD700"}}>
+{team.totalPoints || 0} pts
+</h2>
+
+</div>
+)
+)}
+
+</div>
 
       {teamCreationDeadline && (
   <div
