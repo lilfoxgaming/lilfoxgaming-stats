@@ -60,6 +60,7 @@ const [savedFantasyTeam, setSavedFantasyTeam] = useState(null);
 const [isEditingFantasyTeam, setIsEditingFantasyTeam] = useState(false);
 const [fantasyLeaderboard, setFantasyLeaderboard] = useState([]);
 const [leaderboardLoading, setLeaderboardLoading] = useState(false);
+const [expandedFantasyTeam, setExpandedFantasyTeam] = useState(null);
 const [captainId, setCaptainId] = useState("");
 const [viceCaptainId, setViceCaptainId] = useState("");
 
@@ -786,7 +787,29 @@ const loadFantasyLeaderboard = async () => {
 
   try {
 
-    const snapshot = await getDocs(
+    const scoresSnapshot = await getDocs(
+      collection(
+        db,
+        "competitions",
+        "fifa-world-cup-2026-fantasy-game",
+        "playerScores"
+      )
+    );
+
+
+    const scores = {};
+
+    scoresSnapshot.docs.forEach((doc) => {
+
+      const data = doc.data();
+
+      scores[data.playerId] =
+        data.totalPoints || 0;
+
+    });
+
+
+    const teamsSnapshot = await getDocs(
       collection(
         db,
         "competitions",
@@ -796,26 +819,67 @@ const loadFantasyLeaderboard = async () => {
     );
 
 
-    const teams = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    const teams =
+      teamsSnapshot.docs.map((doc) => {
+
+        const team = doc.data();
+
+
+        const players =
+          (team.players || []).map(
+            (player) => {
+
+              let points =
+                scores[player.id] || 0;
+
+
+              if (
+                player.id === team.captainId
+              ) {
+                points = points * 2;
+              }
+
+
+              if (
+                player.id ===
+                team.viceCaptainId
+              ) {
+                points = points * 1.5;
+              }
+
+
+              return {
+                ...player,
+                fantasyPoints: points,
+              };
+
+            }
+          );
+
+
+        return {
+          id: doc.id,
+          ...team,
+          players,
+        };
+
+      });
 
 
     teams.sort(
-      (a, b) =>
-        (b.totalPoints || 0) -
-        (a.totalPoints || 0)
+      (a,b)=>
+      (b.totalPoints || 0) -
+      (a.totalPoints || 0)
     );
 
 
     setFantasyLeaderboard(teams);
 
 
-  } catch (error) {
+  } catch(error) {
 
     console.error(
-      "Leaderboard Error:",
+      "Leaderboard load error:",
       error
     );
 
@@ -1485,6 +1549,58 @@ Manager: {team.managerName}
 <h2 style={{color:"#FFD700"}}>
 {team.totalPoints || 0} pts
 </h2>
+
+<button
+onClick={() =>
+setExpandedFantasyTeam(
+expandedFantasyTeam === team.id
+? null
+: team.id
+)
+}
+style={{
+padding:"8px 12px",
+borderRadius:"10px",
+background:"rgba(255,215,0,0.15)",
+color:"#FFD700",
+border:"1px solid #FFD700"
+}}
+>
+View Squad
+</button>
+
+
+{expandedFantasyTeam === team.id && (
+
+<div style={{marginTop:"15px"}}>
+
+{team.players.map((player)=>(
+
+<p key={player.id}>
+
+{team.captainId === player.id
+?"⭐ "
+:team.viceCaptainId === player.id
+?"💫 "
+:"✅ "}
+
+{player.name}
+
+{" - "}
+
+<span style={{color:"#FFD700"}}>
+
+{player.fantasyPoints} pts
+
+</span>
+
+</p>
+
+))}
+
+</div>
+
+)}
 
 </div>
 )
