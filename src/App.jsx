@@ -61,6 +61,28 @@ const [isEditingFantasyTeam, setIsEditingFantasyTeam] = useState(false);
 const [captainId, setCaptainId] = useState("");
 const [viceCaptainId, setViceCaptainId] = useState("");
 
+// Fantasy performance update states
+
+const [performanceData, setPerformanceData] = useState([]);
+
+const [selectedPerformancePlayer, setSelectedPerformancePlayer] =
+  useState("");
+
+const [goals, setGoals] = useState(0);
+const [assists, setAssists] = useState(0);
+
+const [cleanSheet, setCleanSheet] =
+  useState(false);
+
+const [yellowCard, setYellowCard] =
+  useState(false);
+
+const [redCard, setRedCard] =
+  useState(false);
+
+const [manOfMatch, setManOfMatch] =
+  useState(false);
+
 const [fantasyPositionFilter, setFantasyPositionFilter] = useState("ALL");
 
 const [fantasyCountryFilter, setFantasyCountryFilter] = useState("ALL");
@@ -566,6 +588,154 @@ const handleSaveFantasyDeadline = async () => {
     alert(
       "Something went wrong while saving deadline."
     );
+  }
+};
+
+const calculatePlayerPoints = (player, stats) => {
+  let points = 0;
+
+  // Played match
+  points += 1;
+
+  // Goals by position
+  if (player.position === "GK") {
+    points += Number(stats.goals || 0) * 10;
+  } else if (player.position === "DEF") {
+    points += Number(stats.goals || 0) * 7;
+  } else if (player.position === "MID") {
+    points += Number(stats.goals || 0) * 6;
+  } else if (player.position === "FWD") {
+    points += Number(stats.goals || 0) * 5;
+  }
+
+  // Assists
+  points += Number(stats.assists || 0) * 3;
+
+  // Clean sheet
+  if (stats.cleanSheet) {
+    if (player.position === "GK") {
+      points += 5;
+    } else if (player.position === "DEF") {
+      points += 4;
+    } else if (player.position === "MID") {
+      points += 2;
+    }
+  }
+
+  // Cards
+  if (stats.yellowCard) {
+    points -= 1;
+  }
+
+  if (stats.redCard) {
+    points -= 3;
+  }
+
+  // Man of the Match
+  if (stats.manOfMatch) {
+    points += 5;
+  }
+
+  return points;
+};
+
+const handlePerformanceCsvUpload = (event) => {
+  const file = event.target.files[0];
+
+  if (!file) return;
+
+  Papa.parse(file, {
+    header: true,
+    skipEmptyLines: true,
+
+    complete: function (results) {
+      const cleanedPerformance = results.data.map(
+        (row, index) => {
+          const cleanedRow = {};
+
+          Object.keys(row).forEach((key) => {
+            cleanedRow[key.trim()] = row[key];
+          });
+
+          return {
+            id: `performance-${index + 1}`,
+            matchNo: Number(cleanedRow.MatchNo),
+            player: cleanedRow.Player?.trim(),
+            goals: Number(cleanedRow.Goals) || 0,
+            assists: Number(cleanedRow.Assists) || 0,
+            cleanSheet:
+              cleanedRow.CleanSheet?.toLowerCase() ===
+              "yes",
+            yellowCard:
+              cleanedRow.YellowCard?.toLowerCase() ===
+              "yes",
+            redCard:
+              cleanedRow.RedCard?.toLowerCase() === "yes",
+            manOfMatch:
+              cleanedRow.MOTM?.toLowerCase() === "yes",
+          };
+        }
+      );
+
+      setPerformanceData(cleanedPerformance);
+    },
+  });
+};
+
+const handleSavePerformance = async () => {
+  if (!selectedCompetition) {
+    alert("No competition selected.");
+    return;
+  }
+
+  if (performanceData.length === 0) {
+    alert("No performance data found.");
+    return;
+  }
+
+  try {
+
+    const batch = writeBatch(db);
+
+
+    performanceData.forEach((record) => {
+
+      const performanceRef = doc(
+        db,
+        "competitions",
+        selectedCompetition.id,
+        "matchPerformance",
+        `${record.matchNo}_${record.player}`
+      );
+
+
+      batch.set(
+        performanceRef,
+        record
+      );
+
+    });
+
+
+    await batch.commit();
+
+
+    alert(
+      "Performance saved successfully!"
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Save Performance Error:",
+      error
+    );
+
+    alert(
+      "Error saving performance."
+    );
+
   }
 };
 
@@ -1494,7 +1664,11 @@ new Date() < new Date(teamCreationDeadline) ? (
   );
 }
 
-if (showAdminPanel && profile?.role === "superadmin") {
+if (
+  showAdminPanel &&
+  (profile?.role === "superadmin" ||
+    profile?.role === "admin")
+) {
     if (showManageUsers) {
     return (
       <div
@@ -1875,6 +2049,77 @@ if (showAdminPanel && profile?.role === "superadmin") {
   </button>
 </div>
 
+<div
+  style={{
+    marginTop: "20px",
+    marginBottom: "25px",
+    padding: "20px",
+    borderRadius: "18px",
+    background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,215,0,0.2)",
+  }}
+>
+  <h2 style={{ color: "#FFD700" }}>
+    📊 Player Performance Upload
+  </h2>
+
+  <p style={{ color: "#bbb" }}>
+    Upload CSV with columns: MatchNo, Player, Goals, Assists, CleanSheet, YellowCard, RedCard, MOTM
+  </p>
+
+  <input
+    type="file"
+    accept=".csv"
+    onChange={handlePerformanceCsvUpload}
+    style={{
+      marginTop: "10px",
+      color: "white",
+    }}
+  />
+
+  {performanceData.length > 0 && (
+    <div style={{ marginTop: "20px" }}>
+      <h3 style={{ color: "#FFD700" }}>
+        Preview: {performanceData.length} Records
+      </h3>
+
+      {performanceData.slice(0, 5).map((record) => (
+        <p
+          key={record.id}
+          style={{
+            color: "#bbb",
+            margin: "6px 0",
+          }}
+        >
+          Match {record.matchNo}: {record.player} - Goals: {record.goals}, Assists: {record.assists}
+        </p>
+      ))}
+
+      {performanceData.length > 5 && (
+        <p style={{ color: "#888" }}>
+          + {performanceData.length - 5} more records
+        </p>
+      )}
+
+      <button
+        onClick={handleSavePerformance}
+        style={{
+          marginTop: "15px",
+          padding: "12px 18px",
+          borderRadius: "12px",
+          border: "1px solid #FFD700",
+          background: "#FFD700",
+          color: "black",
+          cursor: "pointer",
+          fontWeight: "bold",
+        }}
+      >
+        Save Performance
+      </button>
+    </div>
+  )}
+</div>
+
     <div
       style={{
         display: "grid",
@@ -1935,58 +2180,66 @@ if (showAdminPanel && profile?.role === "superadmin") {
     padding: "20px",
   }}
 >
-  <h2 style={{ color: "#FFD700" }}>
-    🏆 Competitions
-  </h2>
+ <h2 style={{ color: "#FFD700" }}>
+  🏆 Competitions
+</h2>
 
-  <input
-    type="text"
-    placeholder="Competition Name"
-    value={competitionName}
-    onChange={(e) =>
-      setCompetitionName(e.target.value)
-    }
-    style={{
-      width: "90%",
-      padding: "12px",
-      borderRadius: "10px",
-      marginBottom: "12px",
-    }}
-  />
 
-  <select
-    value={competitionType}
-    onChange={(e) =>
-      setCompetitionType(e.target.value)
-    }
-    style={{
-      width: "95%",
-      padding: "12px",
-      borderRadius: "10px",
-      marginBottom: "12px",
-    }}
-  >
-    <option value="worldcup">
-      World Cup Fantasy
-    </option>
+{profile?.role === "superadmin" && (
+  <>
+    <input
+      type="text"
+      placeholder="Competition Name"
+      value={competitionName}
+      onChange={(e) =>
+        setCompetitionName(e.target.value)
+      }
+      style={{
+        width: "90%",
+        padding: "12px",
+        borderRadius: "10px",
+        marginBottom: "12px",
+      }}
+    />
 
-    <option value="war">
-      WAR Fantasy
-    </option>
-  </select>
 
-  <button
-    onClick={handleCreateCompetition}
-    style={{
-      padding: "12px 18px",
-      borderRadius: "12px",
-      background: "#FFD700",
-      cursor: "pointer",
-      fontWeight: "bold",
-    }}
-  >
-    + Create Competition
-  </button>
+    <select
+      value={competitionType}
+      onChange={(e) =>
+        setCompetitionType(e.target.value)
+      }
+      style={{
+        width: "95%",
+        padding: "12px",
+        borderRadius: "10px",
+        marginBottom: "12px",
+      }}
+    >
+      <option value="worldcup">
+        World Cup Fantasy
+      </option>
+
+      <option value="war">
+        WAR Fantasy
+      </option>
+    </select>
+
+
+    <button
+      onClick={handleCreateCompetition}
+      style={{
+        padding: "12px 18px",
+        borderRadius: "12px",
+        background: "#FFD700",
+        cursor: "pointer",
+        fontWeight: "bold",
+      }}
+    >
+      + Create Competition
+    </button>
+  </>
+)}
+
 
 <div
   style={{
@@ -2077,24 +2330,28 @@ if (showAdminPanel && profile?.role === "superadmin") {
     Players: {users.filter((u) => u.role === "player").length}
   </p>
 
-  <button
-    onClick={() => {
-  fetchUsers();
-  setShowManageUsers(true);
-}}
-    style={{
-      marginTop: "10px",
-      padding: "10px 16px",
-      borderRadius: "10px",
-      border: "1px solid #FFD700",
-      background: "rgba(255,215,0,0.15)",
-      color: "#FFD700",
-      cursor: "pointer",
-      fontWeight: "bold",
-    }}
-  >
-    Manage Users
-  </button>
+  {profile?.role === "superadmin" && (
+
+<button
+  onClick={() => {
+    fetchUsers();
+    setShowManageUsers(true);
+  }}
+  style={{
+    marginTop: "10px",
+    padding: "10px 16px",
+    borderRadius: "10px",
+    border: "1px solid #FFD700",
+    background: "rgba(255,215,0,0.15)",
+    color: "#FFD700",
+    cursor: "pointer",
+    fontWeight: "bold",
+  }}
+>
+  Manage Users
+</button>
+
+)}
 </div>
 
         <div
@@ -2208,7 +2465,8 @@ if (showAdminPanel && profile?.role === "superadmin") {
     }}
   >
 
-    {profile?.role === "superadmin" && (
+    {(profile?.role === "superadmin" ||
+  profile?.role === "admin") && (
   <>
     <span
       style={{
