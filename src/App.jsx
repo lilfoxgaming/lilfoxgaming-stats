@@ -1134,49 +1134,89 @@ if (captainId === viceCaptainId) {
   return;
 }
 
-let transfersMade = 0;
-let transferPenalty = 0;
+let currentTransferCount = 0;
+
+let previousTransfersMade =
+  savedFantasyTeam?.transfersMade || 0;
+
+let previousTransferPenalty =
+  savedFantasyTeam?.transferPenalty || 0;
+
+let transfersMade = previousTransfersMade;
+let transferPenalty = previousTransferPenalty;
 
 
 if (savedFantasyTeam && transferWindowOpen) {
 
   const oldIds =
     savedFantasyTeam.players.map(
-      (p)=>p.id
+      (p) => p.id
     );
 
 
   const newIds =
     selectedFantasyPlayers.map(
-      (p)=>p.id
+      (p) => p.id
     );
 
 
-  transfersMade =
+  currentTransferCount =
     newIds.filter(
-      (id)=>!oldIds.includes(id)
+      (id) => !oldIds.includes(id)
     ).length;
 
 
-  const extraTransfers =
-    Math.max(
-      0,
-      transfersMade - freeTransfers
-    );
-
-
   for (
-    let i = 0;
-    i < extraTransfers;
+    let i = 1;
+    i <= currentTransferCount;
     i++
   ) {
 
-    transferPenalty +=
-      transferPenaltyBase *
-      Math.pow(2,i);
+    const transferNumber =
+      previousTransfersMade + i;
+
+
+    if (
+      transferNumber > Number(freeTransfers)
+    ) {
+
+      const extraTransferNumber =
+        transferNumber -
+        Number(freeTransfers);
+
+
+      transferPenalty +=
+        Number(transferPenaltyBase) *
+        Math.pow(
+          2,
+          extraTransferNumber - 1
+        );
+
+    }
 
   }
 
+
+  transfersMade =
+    previousTransfersMade +
+    currentTransferCount;
+
+}
+
+if (savedFantasyTeam && transferWindowOpen) {
+  const confirmTransfer = window.confirm(
+  `Transfer Summary:\n\n` +
+  `Previous Transfers: ${previousTransfersMade}\n` +
+  `Current Changes: ${currentTransferCount}\n` +
+  `Total Transfers: ${transfersMade}\n` +
+  `Free Transfers: ${freeTransfers}\n` +
+  `Total Penalty: -${transferPenalty} points\n\n` +
+  `Do you want to continue?`
+);
+
+  if (!confirmTransfer) {
+    return;
+  }
 }
 
 let updatedTotalPoints =
@@ -1184,8 +1224,8 @@ let updatedTotalPoints =
 
 if (savedFantasyTeam && transferWindowOpen) {
   updatedTotalPoints =
-    updatedTotalPoints -
-    transferPenalty;
+  updatedTotalPoints -
+  (transferPenalty - previousTransferPenalty);
 }
 
   try {
@@ -1223,8 +1263,10 @@ if (savedFantasyTeam && transferWindowOpen) {
   players: selectedFantasyPlayers,
   captainId: captainId,
   viceCaptainId: viceCaptainId,
+  transfersMade: transfersMade,
+  transferPenalty: transferPenalty,
+  totalPoints: updatedTotalPoints,
 });
-
 setIsEditingFantasyTeam(false);
   } catch (error) {
     console.error(
