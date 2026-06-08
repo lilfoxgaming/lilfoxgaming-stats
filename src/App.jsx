@@ -1730,9 +1730,91 @@ if (showFantasyPage) {
         ⚽ FIFA World Cup 2026 Fantasy
       </h1>
 
+      {profile && (
+  <div
+    style={{
+      marginTop: "15px",
+      marginBottom: "20px",
+      padding: "15px",
+      borderRadius: "15px",
+      background: "rgba(255,215,0,0.08)",
+      border: "1px solid rgba(255,215,0,0.25)",
+    }}
+  >
+    <h3 style={{ color:"#FFD700" }}>
+      👤 Logged in Manager
+    </h3>
+
+    <p>
+      Manager: {profile.managerName}
+    </p>
+
+    <p>
+      Fantasy Team: {profile.fantasyTeamName}
+    </p>
+  </div>
+)}
+
       <p style={{ color: "#bbb" }}>
         Build your 15 player dream squad.
       </p>
+
+      <div
+  style={{
+    marginTop: "20px",
+    padding: "20px",
+    borderRadius: "18px",
+    background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,215,0,0.2)",
+  }}
+>
+  <h2 style={{ color:"#FFD700" }}>
+    📘 Fantasy Rules
+  </h2>
+
+  <p style={{ color:"#bbb" }}>
+    Build a squad of 15 players.
+  </p>
+
+  <p>
+    🧤 GK minimum 2 | 🛡 DEF minimum 3 | 🎯 MID minimum 3 | ⚡ FWD minimum 3
+  </p>
+
+  <h3 style={{ color:"#FFD700" }}>
+    Captain Bonus
+  </h3>
+
+  <p>
+    ⭐ Captain gets x2 points
+  </p>
+
+  <p>
+    💫 Vice Captain gets x1.5 points
+  </p>
+
+  <h3 style={{ color:"#FFD700" }}>
+    Points System
+  </h3>
+
+  <p>Played: +1</p>
+  <p>Goal: GK +10 | DEF +7 | MID +6 | FWD +5</p>
+  <p>Assist: +3</p>
+  <p>Clean Sheet: GK +5 | DEF +4 | MID +2</p>
+  <p>Yellow Card: -1 | Red Card: -3</p>
+  <p>MOTM: +5</p>
+
+  <h3 style={{ color:"#FFD700" }}>
+    Transfers
+  </h3>
+
+  <p>
+    Transfers are allowed only when admin opens the transfer window.
+  </p>
+
+  <p>
+    Extra transfers after the free limit will receive progressive point deductions.
+  </p>
+</div>
 
       <div
   style={{
@@ -1795,55 +1877,57 @@ Manager: {team.managerName}
 {team.totalPoints || 0} pts
 </h2>
 
-<button
-onClick={() =>
-setExpandedFantasyTeam(
-expandedFantasyTeam === team.id
-? null
-: team.id
-)
-}
-style={{
-padding:"8px 12px",
-borderRadius:"10px",
-background:"rgba(255,215,0,0.15)",
-color:"#FFD700",
-border:"1px solid #FFD700"
-}}
->
-View Squad
-</button>
+{teamCreationDeadline &&
+new Date() < new Date(teamCreationDeadline) ? (
 
+  <p style={{ color:"#ff7777", fontWeight:"bold" }}>
+    🔒 Squad hidden until deadline
+  </p>
 
-{expandedFantasyTeam === team.id && (
+) : (
 
-<div style={{marginTop:"15px"}}>
+  <>
+    <button
+      onClick={() =>
+        setExpandedFantasyTeam(
+          expandedFantasyTeam === team.id
+            ? null
+            : team.id
+        )
+      }
+      style={{
+        padding:"8px 12px",
+        borderRadius:"10px",
+        background:"rgba(255,215,0,0.15)",
+        color:"#FFD700",
+        border:"1px solid #FFD700"
+      }}
+    >
+      View Squad
+    </button>
 
-{team.players.map((player)=>(
+    {expandedFantasyTeam === team.id && (
+      <div style={{ marginTop:"15px" }}>
+        {team.players.map((player)=>(
+          <p key={player.id}>
+            {team.captainId === player.id
+              ? "⭐ "
+              : team.viceCaptainId === player.id
+              ? "💫 "
+              : "✅ "}
 
-<p key={player.id}>
+            {player.name}
 
-{team.captainId === player.id
-?"⭐ "
-:team.viceCaptainId === player.id
-?"💫 "
-:"✅ "}
+            {" - "}
 
-{player.name}
-
-{" - "}
-
-<span style={{color:"#FFD700"}}>
-
-{player.fantasyPoints} pts
-
-</span>
-
-</p>
-
-))}
-
-</div>
+            <span style={{ color:"#FFD700" }}>
+              {player.fantasyPoints} pts
+            </span>
+          </p>
+        ))}
+      </div>
+    )}
+  </>
 
 )}
 
