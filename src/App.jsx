@@ -91,6 +91,9 @@ const [fantasyPositionFilter, setFantasyPositionFilter] = useState("ALL");
 const [fantasyCountryFilter, setFantasyCountryFilter] = useState("ALL");
 
 const [teamCreationDeadline, setTeamCreationDeadline] = useState("");
+const [transferWindowOpen, setTransferWindowOpen] = useState(false);
+const [freeTransfers, setFreeTransfers] = useState(3);
+const [transferPenaltyBase, setTransferPenaltyBase] = useState(4);
 
 const [showManageUsers, setShowManageUsers] = useState(false);
 
@@ -469,6 +472,8 @@ const handleLoadSavedFantasyTeam = async () => {
       setSelectedFantasyPlayers(
         teamData.players || []
       );
+      setCaptainId(teamData.captainId || "");
+      setViceCaptainId(teamData.viceCaptainId || "");
     }
 
     await handleLoadFantasyPlayers();
@@ -522,6 +527,17 @@ if (competitionDoc.exists()) {
       settings.teamCreationDeadline
     );
   }
+
+  if (settings?.transferWindowOpen !== undefined) {
+  setTransferWindowOpen(settings.transferWindowOpen);
+  if (settings?.freeTransfers !== undefined) {
+  setFreeTransfers(settings.freeTransfers);
+}
+
+if (settings?.transferPenaltyBase !== undefined) {
+  setTransferPenaltyBase(settings.transferPenaltyBase);
+}
+}
 
 }
 
@@ -591,6 +607,32 @@ const handleSaveFantasyDeadline = async () => {
     alert(
       "Something went wrong while saving deadline."
     );
+  }
+};
+
+const handleSaveTransferWindow = async () => {
+  if (!selectedCompetition) {
+    alert("No competition selected.");
+    return;
+  }
+
+  try {
+    await setDoc(
+      doc(db, "competitions", selectedCompetition.id),
+      {
+        fantasySettings: {
+  transferWindowOpen: transferWindowOpen,
+  freeTransfers: Number(freeTransfers),
+  transferPenaltyBase: Number(transferPenaltyBase),
+},
+      },
+      { merge: true }
+    );
+
+    alert("Transfer window updated successfully!");
+  } catch (error) {
+    console.error("Transfer Window Error:", error);
+    alert("Something went wrong while updating transfer window.");
   }
 };
 
@@ -752,6 +794,10 @@ const updateFantasyTeamPoints = async () => {
 
         }
       );
+
+      total =
+total -
+(team.transferPenalty || 0);
 
 
       batch.update(
@@ -1017,14 +1063,14 @@ const handleSaveFantasyTeam = async () => {
     new Date(teamCreationDeadline);
 
 
-  if (now > deadline) {
+  if (now > deadline && !transferWindowOpen) {
 
-    alert(
-      "Team creation deadline is over."
-    );
+  alert(
+    "Team creation deadline is over and transfer window is closed."
+  );
 
-    return;
-  }
+  return;
+}
 
 }
 
@@ -1088,6 +1134,60 @@ if (captainId === viceCaptainId) {
   return;
 }
 
+let transfersMade = 0;
+let transferPenalty = 0;
+
+
+if (savedFantasyTeam && transferWindowOpen) {
+
+  const oldIds =
+    savedFantasyTeam.players.map(
+      (p)=>p.id
+    );
+
+
+  const newIds =
+    selectedFantasyPlayers.map(
+      (p)=>p.id
+    );
+
+
+  transfersMade =
+    newIds.filter(
+      (id)=>!oldIds.includes(id)
+    ).length;
+
+
+  const extraTransfers =
+    Math.max(
+      0,
+      transfersMade - freeTransfers
+    );
+
+
+  for (
+    let i = 0;
+    i < extraTransfers;
+    i++
+  ) {
+
+    transferPenalty +=
+      transferPenaltyBase *
+      Math.pow(2,i);
+
+  }
+
+}
+
+let updatedTotalPoints =
+  savedFantasyTeam?.totalPoints || 0;
+
+if (savedFantasyTeam && transferWindowOpen) {
+  updatedTotalPoints =
+    updatedTotalPoints -
+    transferPenalty;
+}
+
   try {
     await setDoc(
       doc(
@@ -1107,7 +1207,10 @@ if (captainId === viceCaptainId) {
         captainId: captainId,
         viceCaptainId: viceCaptainId,
 
-        totalPoints: 0,
+        transfersMade: transfersMade,
+        transferPenalty: transferPenalty,
+
+        totalPoints: updatedTotalPoints,
 
         createdAt: new Date().toISOString(),
       }
@@ -1716,7 +1819,7 @@ View Squad
     )}
 
 {teamCreationDeadline &&
-new Date() < new Date(teamCreationDeadline) ? (
+(new Date() < new Date(teamCreationDeadline) || transferWindowOpen) ? (
 
   <button
     onClick={() => {
@@ -1745,7 +1848,7 @@ new Date() < new Date(teamCreationDeadline) ? (
       fontWeight: "bold",
     }}
   >
-    🔒 Team Locked
+    🔒 Team Locked - Transfer Window Closed
   </p>
 
 )}
@@ -2429,6 +2532,88 @@ if (
     }}
   >
     Save Deadline
+  </button>
+</div>
+
+<div
+  style={{
+    marginTop: "20px",
+    marginBottom: "25px",
+    padding: "20px",
+    borderRadius: "18px",
+    background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,215,0,0.2)",
+  }}
+>
+  <h2 style={{ color: "#FFD700" }}>
+    🔄 Transfer Window
+  </h2>
+
+  <label style={{ color: "#bbb" }}>
+    <input
+      type="checkbox"
+      checked={transferWindowOpen}
+      onChange={(e) =>
+        setTransferWindowOpen(e.target.checked)
+      }
+      style={{ marginRight: "10px" }}
+    />
+    Transfer Window Open
+  </label>
+
+  <div style={{ marginTop: "15px" }}>
+
+<p style={{ color:"#bbb" }}>
+Free Transfers
+</p>
+
+<input
+type="number"
+value={freeTransfers}
+onChange={(e)=>
+setFreeTransfers(e.target.value)
+}
+style={{
+padding:"10px",
+borderRadius:"10px"
+}}
+/>
+
+
+<p style={{ color:"#bbb" }}>
+Base Penalty Per Extra Transfer
+</p>
+
+<input
+type="number"
+value={transferPenaltyBase}
+onChange={(e)=>
+setTransferPenaltyBase(e.target.value)
+}
+style={{
+padding:"10px",
+borderRadius:"10px"
+}}
+/>
+
+</div>
+
+  <br />
+
+  <button
+    onClick={handleSaveTransferWindow}
+    style={{
+      marginTop: "15px",
+      padding: "12px 18px",
+      borderRadius: "12px",
+      border: "1px solid #FFD700",
+      background: "#FFD700",
+      color: "black",
+      cursor: "pointer",
+      fontWeight: "bold",
+    }}
+  >
+    Save Transfer Window
   </button>
 </div>
 
