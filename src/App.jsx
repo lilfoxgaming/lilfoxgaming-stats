@@ -12,6 +12,7 @@ import {
   query,
   where,
   getDocs,
+  addDoc,
 } from "firebase/firestore";
 import {
   createColumnHelper,
@@ -1237,6 +1238,9 @@ if (savedFantasyTeam && transferWindowOpen) {
   "fantasyTeams",
   user.uid
 ),
+
+
+
       {
         userId: user.uid,
 
@@ -1255,6 +1259,57 @@ if (savedFantasyTeam && transferWindowOpen) {
         createdAt: new Date().toISOString(),
       }
     );
+
+    if (
+  savedFantasyTeam &&
+  transferWindowOpen &&
+  currentTransferCount > 0
+) {
+  const oldPlayers = savedFantasyTeam.players || [];
+  const newPlayers = selectedFantasyPlayers || [];
+
+  const removedPlayers = oldPlayers.filter(
+    (oldPlayer) =>
+      !newPlayers.some(
+        (newPlayer) => newPlayer.id === oldPlayer.id
+      )
+  );
+
+  const addedPlayers = newPlayers.filter(
+    (newPlayer) =>
+      !oldPlayers.some(
+        (oldPlayer) => oldPlayer.id === newPlayer.id
+      )
+  );
+
+  await addDoc(
+    collection(
+      db,
+      "competitions",
+      "fifa-world-cup-2026-fantasy-game",
+      "transferHistory"
+    ),
+    {
+      userId: user.uid,
+      managerName: profile.managerName,
+      fantasyTeamName: profile.fantasyTeamName,
+
+      removedPlayers,
+      addedPlayers,
+
+      currentTransferCount,
+      previousTransfersMade,
+      totalTransfersMade: transfersMade,
+
+      penaltyThisSave:
+        transferPenalty - previousTransferPenalty,
+
+      totalTransferPenalty: transferPenalty,
+
+      createdAt: new Date().toISOString(),
+    }
+  );
+}
 
     alert("Fantasy Team created successfully!");
     setSavedFantasyTeam({
