@@ -53,6 +53,13 @@ const [selectedCompetition, setSelectedCompetition] = useState(null);
 
 const [uploadedPlayers, setUploadedPlayers] = useState([]);
 const [uploadedFixtures, setUploadedFixtures] = useState([]);
+const [manualMatchNo, setManualMatchNo] = useState("");
+const [manualRound, setManualRound] = useState("");
+const [manualDate, setManualDate] = useState("");
+const [manualTime, setManualTime] = useState("");
+const [manualTeamA, setManualTeamA] = useState("");
+const [manualTeamB, setManualTeamB] = useState("");
+const [fixtureCountries, setFixtureCountries] = useState([]);
 
 const [fantasyPlayers, setFantasyPlayers] = useState([]);
 const [selectedFantasyPlayers, setSelectedFantasyPlayers] = useState([]);
@@ -446,6 +453,107 @@ const handleSaveFixturesToDatabase = async () => {
   } catch (error) {
     console.error("Save Fixtures Error:", error);
     alert("Something went wrong while saving fixtures.");
+  }
+};
+
+const loadFixtureCountries = async () => {
+
+  if (!selectedCompetition) return;
+
+
+  try {
+
+    const snapshot = await getDocs(
+      collection(
+        db,
+        "competitions",
+        selectedCompetition.id,
+        "players"
+      )
+    );
+
+
+    const countries = [
+      ...new Set(
+        snapshot.docs.map(
+          (doc) =>
+            doc.data().country
+        )
+      ),
+    ].sort();
+
+
+    setFixtureCountries(countries);
+
+
+  } catch (error) {
+
+    console.error(
+      "Country Load Error:",
+      error
+    );
+
+  }
+
+};
+
+const handleSaveManualFixture = async () => {
+  if (!selectedCompetition) {
+    alert("No competition selected.");
+    return;
+  }
+
+  if (
+    !manualMatchNo ||
+    !manualRound ||
+    !manualDate ||
+    !manualTime ||
+    !manualTeamA ||
+    !manualTeamB
+  ) {
+    alert("Please fill all fixture details.");
+    return;
+  }
+
+  try {
+    const fixtureId = `fixture-${manualMatchNo}`;
+
+    await setDoc(
+      doc(
+        db,
+        "competitions",
+        selectedCompetition.id,
+        "fixtures",
+        fixtureId
+      ),
+      {
+        id: fixtureId,
+        competitionId: selectedCompetition.id,
+        matchNo: Number(manualMatchNo),
+        round: manualRound.trim(),
+        date: manualDate,
+        time: manualTime,
+        teamA: manualTeamA.trim(),
+        teamB: manualTeamB.trim(),
+        status: "upcoming",
+        scoreA: null,
+        scoreB: null,
+        createdAt: new Date().toISOString(),
+      },
+      { merge: true }
+    );
+
+    alert("Fixture saved successfully!");
+
+    setManualMatchNo("");
+    setManualRound("");
+    setManualDate("");
+    setManualTime("");
+    setManualTeamA("");
+    setManualTeamB("");
+  } catch (error) {
+    console.error("Manual Fixture Error:", error);
+    alert("Something went wrong while saving fixture.");
   }
 };
 
@@ -2720,6 +2828,160 @@ if (
       </button>
     </div>
   )}
+</div>
+
+<div
+  style={{
+    marginTop: "20px",
+    marginBottom: "25px",
+    padding: "20px",
+    borderRadius: "18px",
+    background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,215,0,0.2)",
+  }}
+>
+  <h2 style={{ color: "#FFD700" }}>
+    ➕ Add Fixture Manually
+  </h2>
+
+<button
+  onClick={loadFixtureCountries}
+  style={{
+    padding:"10px 15px",
+    borderRadius:"10px",
+    background:"#FFD700",
+    fontWeight:"bold",
+    marginBottom:"15px"
+  }}
+>
+  Load Countries
+</button>
+
+  <input
+    type="number"
+    placeholder="Match No"
+    value={manualMatchNo}
+    onChange={(e) => setManualMatchNo(e.target.value)}
+    style={{
+      width: "90%",
+      padding: "10px",
+      borderRadius: "10px",
+      marginBottom: "10px",
+    }}
+  />
+
+  <input
+    type="text"
+    placeholder="Round"
+    value={manualRound}
+    onChange={(e) => setManualRound(e.target.value)}
+    style={{
+      width: "90%",
+      padding: "10px",
+      borderRadius: "10px",
+      marginBottom: "10px",
+    }}
+  />
+
+  <input
+    type="date"
+    value={manualDate}
+    onChange={(e) => setManualDate(e.target.value)}
+    style={{
+      width: "90%",
+      padding: "10px",
+      borderRadius: "10px",
+      marginBottom: "10px",
+    }}
+  />
+
+  <input
+    type="time"
+    value={manualTime}
+    onChange={(e) => setManualTime(e.target.value)}
+    style={{
+      width: "90%",
+      padding: "10px",
+      borderRadius: "10px",
+      marginBottom: "10px",
+    }}
+  />
+
+  <select
+  value={manualTeamA}
+  onChange={(e) =>
+    setManualTeamA(e.target.value)
+  }
+  style={{
+    width: "90%",
+    padding: "10px",
+    borderRadius: "10px",
+    marginBottom: "10px",
+  }}
+>
+
+  <option value="">
+    Select Team A
+  </option>
+
+  {fixtureCountries.map(
+    (country) => (
+      <option
+        key={country}
+        value={country}
+      >
+        {country}
+      </option>
+    )
+  )}
+
+</select>
+
+  <select
+value={manualTeamB}
+onChange={(e)=>setManualTeamB(e.target.value)}
+style={{
+width:"90%",
+padding:"10px",
+borderRadius:"10px",
+marginBottom:"10px"
+}}
+>
+
+<option value="">
+Select Team B
+</option>
+
+{fixtureCountries.map(
+(country)=>(
+<option
+key={country}
+value={country}
+>
+{country}
+</option>
+)
+)}
+
+</select>
+
+  <br />
+
+  <button
+    onClick={handleSaveManualFixture}
+    style={{
+      marginTop: "10px",
+      padding: "12px 18px",
+      borderRadius: "12px",
+      border: "1px solid #FFD700",
+      background: "#FFD700",
+      color: "black",
+      cursor: "pointer",
+      fontWeight: "bold",
+    }}
+  >
+    Save Fixture
+  </button>
 </div>
 
 <div
