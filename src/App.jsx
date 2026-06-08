@@ -66,7 +66,7 @@ const [captainId, setCaptainId] = useState("");
 const [viceCaptainId, setViceCaptainId] = useState("");
 
 // Fantasy performance update states
-
+const [transferHistory, setTransferHistory] = useState([]);
 const [performanceData, setPerformanceData] = useState([]);
 
 const [selectedPerformancePlayer, setSelectedPerformancePlayer] =
@@ -609,6 +609,51 @@ const handleSaveFantasyDeadline = async () => {
       "Something went wrong while saving deadline."
     );
   }
+};
+
+const loadTransferHistory = async () => {
+
+  if (!selectedCompetition) return;
+
+
+  try {
+
+    const snapshot = await getDocs(
+      collection(
+        db,
+        "competitions",
+        selectedCompetition.id,
+        "transferHistory"
+      )
+    );
+
+
+    const history =
+      snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+
+    history.sort(
+      (a,b)=>
+      new Date(b.createdAt) -
+      new Date(a.createdAt)
+    );
+
+
+    setTransferHistory(history);
+
+
+  } catch(error) {
+
+    console.error(
+      "Transfer History Error:",
+      error
+    );
+
+  }
+
 };
 
 const handleSaveTransferWindow = async () => {
@@ -2712,6 +2757,98 @@ borderRadius:"10px"
   >
     Save Transfer Window
   </button>
+</div>
+
+<div
+style={{
+marginTop:"20px",
+marginBottom:"25px",
+padding:"20px",
+borderRadius:"18px",
+background:"rgba(255,255,255,0.05)",
+border:"1px solid rgba(255,215,0,0.2)",
+}}
+>
+
+<h2 style={{color:"#FFD700"}}>
+📜 Transfer History
+</h2>
+
+
+<button
+onClick={loadTransferHistory}
+style={{
+padding:"10px 15px",
+borderRadius:"10px",
+background:"#FFD700",
+fontWeight:"bold"
+}}
+>
+Load History
+</button>
+
+
+{transferHistory.map((item)=>(
+
+<div
+key={item.id}
+style={{
+marginTop:"15px",
+padding:"15px",
+borderRadius:"12px",
+background:"rgba(255,255,255,0.05)"
+}}
+>
+
+<h3>
+{item.fantasyTeamName}
+</h3>
+
+<p>
+Manager: {item.managerName}
+</p>
+
+
+<h4 style={{color:"#ff7777"}}>
+OUT
+</h4>
+
+{item.removedPlayers.map(
+(player)=>(
+<p key={player.id}>
+❌ {player.name}
+</p>
+)
+)}
+
+
+<h4 style={{color:"#77ff77"}}>
+IN
+</h4>
+
+{item.addedPlayers.map(
+(player)=>(
+<p key={player.id}>
+✅ {player.name}
+</p>
+)
+)}
+
+
+<p style={{color:"#FFD700"}}>
+Penalty: -{item.penaltyThisSave} pts
+</p>
+
+<p style={{color:"#aaa"}}>
+{new Date(
+item.createdAt
+).toLocaleString()}
+</p>
+
+</div>
+
+))}
+
 </div>
 
 <div
