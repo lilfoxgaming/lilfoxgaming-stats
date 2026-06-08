@@ -1707,7 +1707,7 @@ if (showFantasyPage) {
         background:
           "radial-gradient(circle at top, #3a2b00 0%, #050505 60%)",
         color: "white",
-        padding: "20px",
+        padding: window.innerWidth < 768 ? "10px" : "20px",
         fontFamily: "'Orbitron', sans-serif",
       }}
     >
@@ -1726,7 +1726,13 @@ if (showFantasyPage) {
         ← Back
       </button>
 
-      <h1 style={{ color: "#FFD700" }}>
+      <h1
+  style={{
+    color: "#FFD700",
+    fontSize: window.innerWidth < 768 ? "1.6rem" : "2.2rem",
+    
+  }}
+>
         ⚽ FIFA World Cup 2026 Fantasy
       </h1>
 
@@ -1838,7 +1844,8 @@ padding:"10px 16px",
 borderRadius:"10px",
 background:"#FFD700",
 fontWeight:"bold",
-cursor:"pointer"
+cursor:"pointer",
+width: window.innerWidth < 768 ? "100%" : "auto",
 }}
 >
 Refresh Leaderboard
@@ -2060,6 +2067,7 @@ new Date() < new Date(teamCreationDeadline) ? (
       color: "black",
       fontWeight: "bold",
       cursor: "pointer",
+      width: window.innerWidth < 768 ? "100%" : "auto",
     }}
   >
     ✏️ Edit Team
@@ -2195,6 +2203,8 @@ new Date() < new Date(teamCreationDeadline) ? (
             padding: "12px",
             marginBottom: "8px",
             borderRadius: "12px",
+            wordBreak: "break-word",
+            lineHeight: "1.5",
 
             background: selected
               ? "rgba(255,215,0,0.2)"
@@ -2364,6 +2374,7 @@ new Date() < new Date(teamCreationDeadline) ? (
         background: "#FFD700",
         color: "black",
         fontWeight: "bold",
+        width: window.innerWidth < 768 ? "100%" : "auto",
       }}
     >
       Save Fantasy Team
@@ -3359,8 +3370,9 @@ item.createdAt
         color: "#FFD700",
         fontWeight: "bold",
         border: "1px solid #FFD700",
-        padding: "8px 12px",
         borderRadius: "10px",
+        fontSize: window.innerWidth < 768 ? "0.75rem" : "1rem",
+        padding: window.innerWidth < 768 ? "6px 8px" : "8px 12px",
       }}
     >
       👑 SUPER ADMIN
@@ -3501,7 +3513,10 @@ item.createdAt
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 1 }}
             style={{
-              width: "90px",
+              width:
+              window.innerWidth < 768
+              ? "70px"
+              : "90px",
               filter: "drop-shadow(0 0 12px rgba(0,0,0,0.9))",
             }}
           />
@@ -3783,13 +3798,18 @@ whiteSpace: "nowrap",
   }}
 >
   <h1
-    style={{
-      color: "#FFD700",
-      marginBottom: "10px",
-    }}
-  >
-    ⚽ FIFA World Cup 2026 Fantasy
-  </h1>
+  style={{
+    color: "#FFD700",
+    marginBottom: "10px",
+    fontSize:
+      window.innerWidth < 768
+        ? "1.7rem"
+        : "2rem",
+    lineHeight: "1.2",
+  }}
+>
+  ⚽ FIFA World Cup 2026 Fantasy
+</h1>
 
   <p
     style={{
