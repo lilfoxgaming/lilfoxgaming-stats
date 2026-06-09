@@ -1816,7 +1816,7 @@ if (showFantasyPage) {
           "radial-gradient(circle at top, #3a2b00 0%, #050505 60%)",
         color: "white",
         padding: window.innerWidth < 768 ? "10px" : "20px",
-        fontFamily: "'Orbitron', sans-serif",
+        fontFamily: "Arial, Calibri, sans-serif",
       }}
     >
       <button
@@ -2687,7 +2687,7 @@ if (
       Managing: {selectedCompetition.name}
     </h2>
 
-    <div
+   <div
   style={{
     marginTop: "20px",
     marginBottom: "25px",
@@ -2695,6 +2695,7 @@ if (
     borderRadius: "18px",
     background: "rgba(255,255,255,0.05)",
     border: "1px solid rgba(255,215,0,0.2)",
+    fontFamily: "Arial, Calibri, sans-serif",
   }}
 >
   <h2 style={{ color: "#FFD700" }}>
@@ -4057,6 +4058,9 @@ whiteSpace: "nowrap",
     cursor: "pointer",
     textAlign: "center",
     backdropFilter: "blur(12px)",
+
+    fontFamily:
+      "Arial, Calibri, sans-serif",
   }}
 >
   <h1
