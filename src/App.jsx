@@ -45,6 +45,8 @@ const [managerName, setManagerName] = useState("");
 const [fantasyTeamName, setFantasyTeamName] = useState("");
 const [creatingProfile, setCreatingProfile] = useState(false);
 const [showAdminPanel, setShowAdminPanel] = useState(false);
+const [maintenanceMode, setMaintenanceMode] = useState(false);
+const [siteSettingsLoaded, setSiteSettingsLoaded] = useState(false);
 const [showFantasyPage, setShowFantasyPage] = useState(false);
 const [competitionName, setCompetitionName] = useState("");
 const [competitionType, setCompetitionType] = useState("worldcup");
@@ -122,6 +124,26 @@ const [users, setUsers] = useState([]);
   const particlesInit = async (main) => {
     await loadSlim(main);
   };
+  
+  const loadSiteSettings = async () => {
+  try {
+    const settingsSnap = await getDoc(
+      doc(db, "siteSettings", "main")
+    );
+
+    if (settingsSnap.exists()) {
+      setMaintenanceMode(
+        settingsSnap.data().maintenanceMode || false
+      );
+    }
+
+    setSiteSettingsLoaded(true);
+  } catch (error) {
+    console.error("Site Settings Error:", error);
+    setSiteSettingsLoaded(true);
+  }
+};
+  
   const handleGoogleLogin = async () => {
   try {
     const provider = new GoogleAuthProvider();
@@ -263,6 +285,24 @@ const handleCreateCompetition = async () => {
   } catch (error) {
     console.error("Competition Creation Error:", error);
     alert("Something went wrong while creating competition.");
+  }
+};
+
+const handleSaveSiteSettings = async () => {
+  try {
+    await setDoc(
+      doc(db, "siteSettings", "main"),
+      {
+        maintenanceMode: maintenanceMode,
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true }
+    );
+
+    alert("Site status updated successfully.");
+  } catch (error) {
+    console.error("Site Settings Save Error:", error);
+    alert("Failed to update site status.");
   }
 };
 
@@ -1583,6 +1623,7 @@ async function fetchFixtures() {
   }
 }
 
+    loadSiteSettings();
     fetchData();
     fetchStandings();
     fetchFixtures();
@@ -1810,6 +1851,44 @@ const filteredUsers = users.filter((appUser) => {
   borderBottom:
     "1px solid rgba(255,255,255,0.08)",
 };
+
+if (
+  siteSettingsLoaded &&
+  maintenanceMode &&
+  profile?.role !== "superadmin" &&
+  profile?.role !== "admin"
+) {
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        background:
+          "radial-gradient(circle at top, #3a2b00 0%, #050505 65%)",
+        color: "white",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+        padding: "25px",
+        fontFamily: "Arial, Calibri, sans-serif",
+      }}
+    >
+      <div
+        style={{
+          maxWidth: "550px",
+          padding: "30px",
+          borderRadius: "22px",
+          background: "rgba(255,255,255,0.06)",
+          border: "1px solid rgba(255,215,0,0.35)",
+        }}
+      >
+        <p style={{ color: "#aaa" }}>
+          Please check back later.
+        </p>
+      </div>
+    </div>
+  );
+}
 
 if (showFantasyPage) {
   return (
@@ -3352,6 +3431,51 @@ item.createdAt
       <p style={{ color: "#bbb" }}>
         LilFox Fantasy Engine control center.
       </p>
+
+      <div
+  style={{
+    marginTop: "20px",
+    padding: "20px",
+    borderRadius: "18px",
+    background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,215,0,0.2)",
+    fontFamily: "Arial, Calibri, sans-serif",
+  }}
+>
+  <h2 style={{ color: "#FFD700" }}>
+    🚦 Site Status
+  </h2>
+
+  <label style={{ color: "#bbb" }}>
+    <input
+      type="checkbox"
+      checked={maintenanceMode}
+      onChange={(e) =>
+        setMaintenanceMode(e.target.checked)
+      }
+      style={{ marginRight: "10px" }}
+    />
+    Maintenance Mode ON
+  </label>
+
+  <br />
+
+  <button
+    onClick={handleSaveSiteSettings}
+    style={{
+      marginTop: "15px",
+      padding: "12px 18px",
+      borderRadius: "12px",
+      border: "1px solid #FFD700",
+      background: "#FFD700",
+      color: "black",
+      cursor: "pointer",
+      fontWeight: "bold",
+    }}
+  >
+    Save Site Status
+  </button>
+</div>
 
       <div
         style={{
