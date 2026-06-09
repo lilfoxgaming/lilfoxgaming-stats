@@ -1217,7 +1217,11 @@ const handleSaveFantasyTeam = async () => {
     new Date(teamCreationDeadline);
 
 
-  if (now > deadline && !transferWindowOpen) {
+  if (
+  now > deadline &&
+  !transferWindowOpen &&
+  !savedFantasyTeam
+) {
 
   alert(
     "Team creation deadline is over and transfer window is closed."
@@ -2198,7 +2202,35 @@ new Date() < new Date(teamCreationDeadline) ? (
   </div>
 )}
 
-      {!savedFantasyTeam && (
+{!savedFantasyTeam &&
+teamCreationDeadline &&
+new Date() > new Date(teamCreationDeadline) && (
+  <div
+    style={{
+      marginTop: "20px",
+      padding: "20px",
+      borderRadius: "18px",
+      background: "rgba(255,0,0,0.08)",
+      border: "1px solid rgba(255,0,0,0.3)",
+    }}
+  >
+    <h2 style={{ color: "#ff7777" }}>
+      🔒 Team Creation Closed
+    </h2>
+
+    <p style={{ color: "#ddd" }}>
+      The deadline is over. New fantasy teams cannot be created now.
+    </p>
+
+    <p style={{ color: "#bbb" }}>
+      You can still view the leaderboard and follow the tournament.
+    </p>
+  </div>
+)}
+
+      {!savedFantasyTeam &&
+(!teamCreationDeadline ||
+new Date() < new Date(teamCreationDeadline)) && (
       <button
         onClick={handleLoadFantasyPlayers}
         style={{
